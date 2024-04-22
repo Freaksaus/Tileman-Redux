@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace TilemanRedux
-{
-	class MapData
+namespace TilemanRedux;
 
-	{
-		public List<KaiTile> AllKaiTilesList { get; set; } = new();
-	}
+class MapData
+
+{
+	public List<KaiTile> AllKaiTilesList { get; set; } = new();
 }

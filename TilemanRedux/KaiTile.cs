@@ -2,50 +2,48 @@
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 
+namespace TilemanRedux;
 
-namespace TilemanRedux
+public class KaiTile
 {
-	public class KaiTile
+
+	public int tileX = 0;
+	public int tileY = 0;
+	public int tileW = Game1.tileSize;
+	public int tileH = Game1.tileSize;
+
+
+	public string tileIsWhere = null;
+	public KaiTile(int TileX, int TileY, string TileIsWhere)
+	{
+		this.tileX = TileX;
+		this.tileY = TileY;
+		this.tileIsWhere = TileIsWhere;
+	}
+
+
+	public void DrawTile(Texture2D texture, SpriteBatch spriteBatch)
 	{
 
-		public int tileX = 0;
-		public int tileY = 0;
-		public int tileW = Game1.tileSize;
-		public int tileH = Game1.tileSize;
+		float offsetX = Game1.viewport.X;
+		float offsetY = Game1.viewport.Y;
 
 
-		public string tileIsWhere = null;
-		public KaiTile(int TileX, int TileY, string TileIsWhere)
-		{
-			this.tileX = TileX;
-			this.tileY = TileY;
-			this.tileIsWhere = TileIsWhere;
-		}
+		spriteBatch.Draw(texture,
+			Utility.getRectangleCenteredAt(new Vector2((this.tileX + 1) * 64 - offsetX - 32, (this.tileY + 1) * 64 - offsetY - 32), 64),
+			Color.White);
 
-
-		public void DrawTile(Texture2D texture, SpriteBatch spriteBatch)
-		{
-
-			float offsetX = Game1.viewport.X;
-			float offsetY = Game1.viewport.Y;
-
-
-			spriteBatch.Draw(texture,
-				Utility.getRectangleCenteredAt(new Vector2((this.tileX + 1) * 64 - offsetX - 32, (this.tileY + 1) * 64 - offsetY - 32), 64),
-				Color.White);
-
-
-
-		}
-
-
-
-		public bool IsSpecifiedTile(int TileX, int TileY, string TileIsWhere)
-		{
-			if (TileX == tileX && TileY == tileY && TileIsWhere == tileIsWhere) return true;
-			return false;
-		}
 
 
 	}
+
+
+
+	public bool IsSpecifiedTile(int TileX, int TileY, string TileIsWhere)
+	{
+		if (TileX == tileX && TileY == tileY && TileIsWhere == tileIsWhere) return true;
+		return false;
+	}
+
+
 }

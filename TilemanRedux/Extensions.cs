@@ -4,6 +4,7 @@ using StardewValley.Objects;
 using xTile.Dimensions;
 
 namespace TilemanRedux;
+
 internal static class Extensions
 {
 	public static bool isTileLocationTotallyClearAndPlaceable(this GameLocation location, int x, int y)
