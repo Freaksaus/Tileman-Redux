@@ -598,7 +598,6 @@ public class ModEntry : Mod
 				{
 					totalCost += (int)Math.Floor(price);
 					price += priceIncrease;
-
 				}
 				break;
 
@@ -612,20 +611,13 @@ public class ModEntry : Mod
 					if (purchase_count > 100) price = 3.0M;
 					if (purchase_count > 1000) price = 4.0M;
 					if (purchase_count > 10000) price = 5.0M;
-
 				}
 
 				break;
 			case 2:
-				price = tile_price;
-
 				for (int i = 0; i < tileCount; i++)
 				{
-					totalCost += (int)price;
-					if (purchase_count > 10) price = 2.0M;
-					if (purchase_count > 100) price = 3.0M;
-					if (purchase_count > 1000) price = 4.0M;
-					if (purchase_count > 10000) price = 5.0M;
+					totalCost += tileCount;
 				}
 
 				break;
