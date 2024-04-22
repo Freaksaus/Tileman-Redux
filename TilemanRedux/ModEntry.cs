@@ -201,15 +201,15 @@ public class ModEntry : Mod
 
 	private void DrawUpdate(object sender, RenderedWorldEventArgs e)
 	{
-		if (!Context.IsWorldReady) return;
+		if (!Context.IsWorldReady)
+		{
+			return;
+		}
 
 		//Makes sure to not draw while a cutscene is happening
-		if (Game1.CurrentEvent != null)
+		if (Game1.CurrentEvent != null && !Game1.CurrentEvent.playerControlSequence)
 		{
-			if (!Game1.CurrentEvent.playerControlSequence)
-			{
-				return;
-			}
+			return;
 		}
 
 		GroupIfLocationChange();
@@ -385,87 +385,76 @@ public class ModEntry : Mod
 
 	private void PlaceInMaps()
 	{
-		if (Context.IsWorldReady)
+		if (Context.IsWorldReady && do_loop)
 		{
-
-			if (do_loop == true)
+			var locationCount = 0;
+			foreach (GameLocation location in GetLocations())
 			{
-				var locationCount = 0;
-				foreach (GameLocation location in GetLocations())
+				if (!tileDict.ContainsKey(location.Name))
 				{
-					if (!tileDict.ContainsKey(location.Name))
+					Monitor.Log($"Placing Tiles in: {location.Name}", LogLevel.Debug);
+
+					locationCount++;
+
+					if (locationCount < amountLocations)
 					{
-						Monitor.Log($"Placing Tiles in: {location.Name}", LogLevel.Debug);
+						PlaceTiles(Game1.getLocationFromName(location.NameOrUniqueName));
 
-						locationCount++;
-
-						if (locationCount < amountLocations)
-						{
-							PlaceTiles(Game1.getLocationFromName(location.NameOrUniqueName));
-
-						}
-						else
-						{
-							break;
-						}
-
-						tileDict.Add(location.Name, tileList);
-						tileList = new();
 					}
-				}
-
-				//Place Tiles in the Mine // Mine 1-120 // Skull Caverns 121-???
-				for (int i = 1; i <= 220 + caverns_extra; i++)
-				{
-					var mineString = Game1.getLocationFromName("UndergroundMine" + i).Name;
-
-					if (!tileDict.ContainsKey(mineString))
+					else
 					{
-						if (Game1.getLocationFromName(mineString) != null)
-						{
-							PlaceTiles(Game1.getLocationFromName(mineString));
-							Monitor.Log($"Placing Tiles in: {mineString}", LogLevel.Debug);
-
-							tileDict.Add(mineString, tileList);
-							tileList = new();
-						}
+						break;
 					}
+
+					tileDict.Add(location.Name, tileList);
+					tileList = new();
 				}
-
-				//VolcanoDungeon0 - 9
-				for (int i = 0; i <= 9; i++)
-				{
-					var mineString = Game1.getLocationFromName("VolcanoDungeon" + i).Name;
-
-					if (!tileDict.ContainsKey(mineString))
-					{
-
-						if (Game1.getLocationFromName(mineString) != null)
-						{
-							PlaceTiles(Game1.getLocationFromName(mineString));
-							Monitor.Log($"Placing Tiles in: {mineString}", LogLevel.Debug);
-
-							tileDict.Add(mineString, tileList);
-							tileList = new();
-						}
-					}
-				}
-
-				AddTileExceptions();
-				RemoveTileExceptions();
-
-				do_loop = false;
-
-				//Save all the created files
-				foreach (KeyValuePair<string, List<KaiTile>> entry in tileDict)
-				{
-					SaveLocationTiles(Game1.getLocationFromName(entry.Key));
-				}
-				tileDict.Clear();
-
-				Monitor.Log("Press 'G' to toggle Tileman Overlay", LogLevel.Debug);
-				Monitor.Log("Press 'H' to switch between Overlay Modes", LogLevel.Debug);
 			}
+
+			//Place Tiles in the Mine // Mine 1-120 // Skull Caverns 121-???
+			for (int i = 1; i <= 220 + caverns_extra; i++)
+			{
+				var mineString = Game1.getLocationFromName("UndergroundMine" + i).Name;
+
+				if (!tileDict.ContainsKey(mineString) && Game1.getLocationFromName(mineString) != null)
+				{
+					PlaceTiles(Game1.getLocationFromName(mineString));
+					Monitor.Log($"Placing Tiles in: {mineString}", LogLevel.Debug);
+
+					tileDict.Add(mineString, tileList);
+					tileList = new();
+				}
+			}
+
+			//VolcanoDungeon0 - 9
+			for (int i = 0; i <= 9; i++)
+			{
+				var mineString = Game1.getLocationFromName("VolcanoDungeon" + i).Name;
+
+				if (!tileDict.ContainsKey(mineString) && Game1.getLocationFromName(mineString) != null)
+				{
+					PlaceTiles(Game1.getLocationFromName(mineString));
+					Monitor.Log($"Placing Tiles in: {mineString}", LogLevel.Debug);
+
+					tileDict.Add(mineString, tileList);
+					tileList = new();
+				}
+			}
+
+			AddTileExceptions();
+			RemoveTileExceptions();
+
+			do_loop = false;
+
+			//Save all the created files
+			foreach (KeyValuePair<string, List<KaiTile>> entry in tileDict)
+			{
+				SaveLocationTiles(Game1.getLocationFromName(entry.Key));
+			}
+			tileDict.Clear();
+
+			Monitor.Log("Press 'G' to toggle Tileman Overlay", LogLevel.Debug);
+			Monitor.Log("Press 'H' to switch between Overlay Modes", LogLevel.Debug);
 		}
 	}
 
@@ -493,13 +482,11 @@ public class ModEntry : Mod
 					&& mapLocation.isTilePlaceable(new Vector2(i, j))
 					&& mapLocation.isTileLocationTotallyClearAndPlaceable(new Vector2(i, j))
 					&& mapLocation.Map.Layers[0].IsValidTileLocation(i, j)
-					&& mapLocation.isCharacterAtTile(new Vector2(i, j)) == null)
+					&& mapLocation.isCharacterAtTile(new Vector2(i, j)) == null
+					&& new Vector2(Game1.player.position.X, Game1.player.position.Y) != new Vector2(i, j))
 				{
-					if (new Vector2(Game1.player.position.X, Game1.player.position.Y) != new Vector2(i, j))
-					{
-						var t = new KaiTile(i, j, mapLocation.Name);
-						tileList.Add(t);
-					}
+					var t = new KaiTile(i, j, mapLocation.Name);
+					tileList.Add(t);
 				}
 			}
 		}
