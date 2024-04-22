@@ -6,8 +6,8 @@ class ModData
 	public bool DoCollision { get; set; } = true;
 	public bool AllowPlayerPlacement { get; set; } = false;
 	public bool ToggleOverlay { get; set; } = true;
-	public double TilePrice { get; set; } = 1;
-	public double TilePriceRaise { get; set; } = 0.0008;
+	public decimal TilePrice { get; set; } = 1;
+	public decimal TilePriceRaise { get; set; } = 0.0008M;
 	public int CavernsExtra { get; set; } = 0;
 	public int DifficultyMode { get; set; } = 1;
 	public int PurchaseCount { get; set; } = 0;

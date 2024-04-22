@@ -18,9 +18,9 @@ public class ModEntry : Mod
 	private bool tool_button_pushed = false;
 	private bool location_changed = false;
 
-	private double tile_price = 1.0;
-	private double tile_price_raise = 0.0008;
-	private double dynamic_tile_price;
+	private decimal tile_price = 1.0M;
+	private decimal tile_price_raise = 0.0008M;
+	private decimal dynamic_tile_price;
 
 	private int caverns_extra = 0;
 	private int difficulty_mode = 0;
@@ -579,8 +579,8 @@ public class ModEntry : Mod
 		toggle_overlay = true;
 		do_collision = true;
 
-		tile_price = 1.0;
-		tile_price_raise = 0.20;
+		tile_price = 1.0M;
+		tile_price_raise = 0.20M;
 		purchase_count = 0;
 
 		tileList.Clear();
@@ -589,7 +589,7 @@ public class ModEntry : Mod
 		tileDict.Clear();
 	}
 
-	public int CalculateTileSum(int tileCount = 50000, double price = 1.0, double priceIncrease = 0.0008)
+	public int CalculateTileSum(int tileCount = 50000, decimal price = 1.0M, decimal priceIncrease = 0.0008M)
 	{
 		var totalCost = 0;
 		switch (difficulty_mode)
@@ -609,10 +609,10 @@ public class ModEntry : Mod
 				for (int i = 0; i < tileCount; i++)
 				{
 					totalCost += (int)price;
-					if (purchase_count > 10) price = 2.0;
-					if (purchase_count > 100) price = 3.0;
-					if (purchase_count > 1000) price = 4.0;
-					if (purchase_count > 10000) price = 5.0;
+					if (purchase_count > 10) price = 2.0M;
+					if (purchase_count > 100) price = 3.0M;
+					if (purchase_count > 1000) price = 4.0M;
+					if (purchase_count > 10000) price = 5.0M;
 
 				}
 
@@ -623,10 +623,10 @@ public class ModEntry : Mod
 				for (int i = 0; i < tileCount; i++)
 				{
 					totalCost += (int)price;
-					if (purchase_count > 10) price = 2.0;
-					if (purchase_count > 100) price = 3.0;
-					if (purchase_count > 1000) price = 4.0;
-					if (purchase_count > 10000) price = 5.0;
+					if (purchase_count > 10) price = 2.0M;
+					if (purchase_count > 100) price = 3.0M;
+					if (purchase_count > 1000) price = 4.0M;
+					if (purchase_count > 10000) price = 5.0M;
 				}
 
 				break;
