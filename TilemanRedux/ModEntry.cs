@@ -219,13 +219,13 @@ public class ModEntry : Mod
 						{
 							texture = tileTexture2;
 
-							if (Game1.player.Money < (int)Math.Floor(tile_price))
+							if (Game1.player.Money < (int)Math.Floor(dynamic_tile_price))
 							{
 								stringColor = Color.Red;
 								texture = tileTexture3;
 							}
 
-							e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(tile_price)}",
+							e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(dynamic_tile_price)}",
 								new Vector2(Game1.getMousePosition().X, Game1.getMousePosition().Y - Game1.tileSize), stringColor);
 						}
 					}
@@ -236,14 +236,13 @@ public class ModEntry : Mod
 						{
 							texture = tileTexture2;
 
-							if (Game1.player.Money < (int)Math.Floor(tile_price))
+							if (Game1.player.Money < (int)Math.Floor(dynamic_tile_price))
 							{
 								texture = tileTexture3;
 								stringColor = Color.Red;
-
 							}
 
-							e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(tile_price)}",
+							e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(dynamic_tile_price)}",
 								new Vector2((t.X) * 64 - Game1.viewport.X, (t.Y) * 64 - 64 - Game1.viewport.Y), stringColor);
 						}
 					}
@@ -669,7 +668,7 @@ public class ModEntry : Mod
 			{
 				if (collisionTick > 120)
 				{
-					Game1.player.Money += (int)tile_price;
+					Game1.player.Money += (int)dynamic_tile_price;
 					collisionTick = 0;
 					PurchaseTileCheck(tile);
 				}
