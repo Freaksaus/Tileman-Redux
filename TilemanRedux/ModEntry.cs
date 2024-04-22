@@ -353,109 +353,111 @@ public class ModEntry : Mod
 	{
 		int floor_price = (int)Math.Floor(dynamic_tile_price);
 
-		if (Game1.player.Money >= floor_price)
+		if (Game1.player.Money < floor_price)
 		{
-
-			Game1.player.Money -= floor_price;
-
-			GetTilePrice();
-
-			purchase_count++;
-
-			Game1.playSound("purchase", 700 + (100 * new Random().Next(0, 7)));
-
-			var gameLocation = Game1.currentLocation;
-
-			gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Buildable");
-			if (gameLocation.doesTileHavePropertyNoNull(thisTile.X, thisTile.Y, "Type", "Back") == "Dirt"
-					|| gameLocation.doesTileHavePropertyNoNull(thisTile.X, thisTile.Y, "Type", "Back") == "Grass") gameLocation.setTileProperty(thisTile.X, thisTile.Y, "Back", "Diggable", "true");
-
-			gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "NoFurniture");
-			gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "NoSprinklers");
-
-			gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Passable");
-			gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Placeable");
-
-			ThisLocationTiles.Remove(thisTile);
-			tileList.Remove(thisTile);
-
+			Game1.playSound("grunt", 700 + (100 * new Random().Next(0, 7)));
+			return;
 		}
-		else Game1.playSound("grunt", 700 + (100 * new Random().Next(0, 7)));
+
+		Game1.player.Money -= floor_price;
+
+		GetTilePrice();
+
+		purchase_count++;
+
+		Game1.playSound("purchase", 700 + (100 * new Random().Next(0, 7)));
+
+		var gameLocation = Game1.currentLocation;
+
+		gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Buildable");
+		if (gameLocation.doesTileHavePropertyNoNull(thisTile.X, thisTile.Y, "Type", "Back") == "Dirt"
+				|| gameLocation.doesTileHavePropertyNoNull(thisTile.X, thisTile.Y, "Type", "Back") == "Grass") gameLocation.setTileProperty(thisTile.X, thisTile.Y, "Back", "Diggable", "true");
+
+		gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "NoFurniture");
+		gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "NoSprinklers");
+
+		gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Passable");
+		gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Placeable");
+
+		ThisLocationTiles.Remove(thisTile);
+		tileList.Remove(thisTile);
 	}
 
 	private void PlaceInMaps()
 	{
-		if (Context.IsWorldReady && do_loop)
+		if (!Context.IsWorldReady || !do_loop)
 		{
-			var locationCount = 0;
-			foreach (GameLocation location in GetLocations())
-			{
-				if (!tileDict.ContainsKey(location.Name))
-				{
-					Monitor.Log($"Placing Tiles in: {location.Name}", LogLevel.Debug);
-
-					locationCount++;
-
-					if (locationCount < amountLocations)
-					{
-						PlaceTiles(Game1.getLocationFromName(location.NameOrUniqueName));
-
-					}
-					else
-					{
-						break;
-					}
-
-					tileDict.Add(location.Name, tileList);
-					tileList = new();
-				}
-			}
-
-			//Place Tiles in the Mine // Mine 1-120 // Skull Caverns 121-???
-			for (int i = 1; i <= 220 + caverns_extra; i++)
-			{
-				var mineString = Game1.getLocationFromName("UndergroundMine" + i).Name;
-
-				if (!tileDict.ContainsKey(mineString) && Game1.getLocationFromName(mineString) != null)
-				{
-					PlaceTiles(Game1.getLocationFromName(mineString));
-					Monitor.Log($"Placing Tiles in: {mineString}", LogLevel.Debug);
-
-					tileDict.Add(mineString, tileList);
-					tileList = new();
-				}
-			}
-
-			//VolcanoDungeon0 - 9
-			for (int i = 0; i <= 9; i++)
-			{
-				var mineString = Game1.getLocationFromName("VolcanoDungeon" + i).Name;
-
-				if (!tileDict.ContainsKey(mineString) && Game1.getLocationFromName(mineString) != null)
-				{
-					PlaceTiles(Game1.getLocationFromName(mineString));
-					Monitor.Log($"Placing Tiles in: {mineString}", LogLevel.Debug);
-
-					tileDict.Add(mineString, tileList);
-					tileList = new();
-				}
-			}
-
-			AddTileExceptions();
-			RemoveTileExceptions();
-
-			do_loop = false;
-
-			//Save all the created files
-			foreach (KeyValuePair<string, List<KaiTile>> entry in tileDict)
-			{
-				SaveLocationTiles(Game1.getLocationFromName(entry.Key));
-			}
-			tileDict.Clear();
-
-			Monitor.Log("Press 'G' to toggle Tileman Overlay", LogLevel.Debug);
-			Monitor.Log("Press 'H' to switch between Overlay Modes", LogLevel.Debug);
+			return;
 		}
+
+		var locationCount = 0;
+		foreach (GameLocation location in GetLocations())
+		{
+			if (!tileDict.ContainsKey(location.Name))
+			{
+				Monitor.Log($"Placing Tiles in: {location.Name}", LogLevel.Debug);
+
+				locationCount++;
+
+				if (locationCount < amountLocations)
+				{
+					PlaceTiles(Game1.getLocationFromName(location.NameOrUniqueName));
+
+				}
+				else
+				{
+					break;
+				}
+
+				tileDict.Add(location.Name, tileList);
+				tileList = new();
+			}
+		}
+
+		//Place Tiles in the Mine // Mine 1-120 // Skull Caverns 121-???
+		for (int i = 1; i <= 220 + caverns_extra; i++)
+		{
+			var mineString = Game1.getLocationFromName("UndergroundMine" + i).Name;
+
+			if (!tileDict.ContainsKey(mineString) && Game1.getLocationFromName(mineString) != null)
+			{
+				PlaceTiles(Game1.getLocationFromName(mineString));
+				Monitor.Log($"Placing Tiles in: {mineString}", LogLevel.Debug);
+
+				tileDict.Add(mineString, tileList);
+				tileList = new();
+			}
+		}
+
+		//VolcanoDungeon0 - 9
+		for (int i = 0; i <= 9; i++)
+		{
+			var mineString = Game1.getLocationFromName("VolcanoDungeon" + i).Name;
+
+			if (!tileDict.ContainsKey(mineString) && Game1.getLocationFromName(mineString) != null)
+			{
+				PlaceTiles(Game1.getLocationFromName(mineString));
+				Monitor.Log($"Placing Tiles in: {mineString}", LogLevel.Debug);
+
+				tileDict.Add(mineString, tileList);
+				tileList = new();
+			}
+		}
+
+		AddTileExceptions();
+		RemoveTileExceptions();
+
+		do_loop = false;
+
+		//Save all the created files
+		foreach (KeyValuePair<string, List<KaiTile>> entry in tileDict)
+		{
+			SaveLocationTiles(Game1.getLocationFromName(entry.Key));
+		}
+		tileDict.Clear();
+
+		Monitor.Log("Press 'G' to toggle Tileman Overlay", LogLevel.Debug);
+		Monitor.Log("Press 'H' to switch between Overlay Modes", LogLevel.Debug);
 	}
 
 	private void PlaceInTempArea(GameLocation gameLocation)
@@ -549,10 +551,7 @@ public class ModEntry : Mod
 		if (locationName == "Temp") locationName += Game1.whereIsTodaysFest;
 		Monitor.Log($"Saving in {locationName}", LogLevel.Debug);
 
-
 		var tileData = Helper.Data.ReadJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{locationName}.json") ?? new MapData();
-
-
 
 		if (gameLocation.Name == "Temp")
 		{ tileData.AllKaiTilesList = ThisLocationTiles; }
@@ -561,7 +560,6 @@ public class ModEntry : Mod
 			tileData.AllKaiTilesList = tileDict[locationName];
 		}
 		Helper.Data.WriteJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{locationName}.json", tileData);
-
 	}
 	private void GetLocationTiles(GameLocation gameLocation)
 	{
@@ -599,7 +597,6 @@ public class ModEntry : Mod
 			}
 		}
 	}
-
 	private void ResetValues()
 	{
 		do_loop = true;
@@ -622,8 +619,6 @@ public class ModEntry : Mod
 		switch (difficulty_mode)
 		{
 			case 0:
-
-
 				for (int i = 0; i < tileCount; i++)
 				{
 					totalCost += (int)Math.Floor(price);
@@ -635,7 +630,6 @@ public class ModEntry : Mod
 			case 1:
 				price = tile_price;
 
-
 				for (int i = 0; i < tileCount; i++)
 				{
 					totalCost += (int)price;
@@ -647,10 +641,8 @@ public class ModEntry : Mod
 				}
 
 				break;
-
 			case 2:
 				price = tile_price;
-
 
 				for (int i = 0; i < tileCount; i++)
 				{
@@ -659,7 +651,6 @@ public class ModEntry : Mod
 					if (purchase_count > 100) price = 3.0;
 					if (purchase_count > 1000) price = 4.0;
 					if (purchase_count > 10000) price = 5.0;
-
 				}
 
 				break;
@@ -668,6 +659,7 @@ public class ModEntry : Mod
 
 		return totalCost;
 	}
+
 	public void BuyAllTilesInLocation(GameLocation gameLocation)
 	{
 		var tileData = this.Helper.Data.ReadJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{gameLocation}.json") ?? new MapData();
@@ -704,7 +696,6 @@ public class ModEntry : Mod
 					Game1.player.Money += (int)tile_price;
 					collisionTick = 0;
 					PurchaseTileCheck(tile);
-
 				}
 
 				var xDist = playerBox.Right - tileBox.Left;
@@ -755,7 +746,6 @@ public class ModEntry : Mod
 					Game1.player.Money += (int)tile_price;
 					collisionTick = 0;
 					PurchaseTileCheck(tile);
-
 				}
 
 				Game1.player.Position = Game1.player.lastPosition;
