@@ -56,7 +56,7 @@ public class ModEntry : Mod
 		tileTexture3 = helper.ModContent.Load<Texture2D>("assets/tile_3.png");
 	}
 
-	private void removeSpecificTile(int xTile, int yTile, string gameLocation)
+	private void RemoveSpecificTile(int xTile, int yTile, string gameLocation)
 	{
 		var tileData = this.Helper.Data.ReadJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{gameLocation}.json") ?? new MapData();
 		var tempList = tileData.AllKaiTilesList;
@@ -100,8 +100,8 @@ public class ModEntry : Mod
 	{
 		this.Monitor.Log("Removing Unusual Tiles", LogLevel.Debug);
 
-		removeSpecificTile(18, 27, "Desert");
-		removeSpecificTile(12, 9, "BusStop");
+		RemoveSpecificTile(18, 27, "Desert");
+		RemoveSpecificTile(12, 9, "BusStop");
 	}
 
 	public void AddTileExceptions()
