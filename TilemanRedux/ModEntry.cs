@@ -54,8 +54,6 @@ public class ModEntry : Mod
 		tileTexture = helper.ModContent.Load<Texture2D>("assets/tile.png");
 		tileTexture2 = helper.ModContent.Load<Texture2D>("assets/tile_2.png");
 		tileTexture3 = helper.ModContent.Load<Texture2D>("assets/tile_3.png");
-
-		//CalculateTileSum();
 	}
 
 	private void removeSpecificTile(int xTile, int yTile, string gameLocation)
@@ -136,12 +134,6 @@ public class ModEntry : Mod
 		tileDict[tempName].Add(new KaiTile(55, 105, tempName));
 		tileDict[tempName].Add(new KaiTile(55, 106, tempName));
 		tileDict[tempName].Add(new KaiTile(55, 107, tempName));
-
-		//Helper.Data.WriteJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{tempName}.json", mapData);
-
-		//
-		//specific tiles to add in /// COPY ABOVE
-		//Mountain 3X3 50,6 -> 52,8
 	}
 
 	private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
@@ -188,10 +180,6 @@ public class ModEntry : Mod
 	{
 		PlaceInMaps();
 		GetLocationTiles(Game1.currentLocation);
-
-		//Game1.timeOfDay = 900;
-		//Game1.dayOfMonth = 14;
-		//Monitor.Log($"TIME OF DAY SET TO:{Game1.timeOfDay}",LogLevel.Debug);
 	}
 
 	private void TitleReturnUpdate(object sender, ReturnedToTitleEventArgs e)
@@ -263,8 +251,10 @@ public class ModEntry : Mod
 				}
 
 				//Prevent player from being pushed out of bounds
-				if (do_collision) PlayerCollisionCheck(t);
-				//Monitor.Log($"{Game1.currentLocation.doesTileHavePropertyNoNull(t.tileX,t.tileY, "Diggable", "back")}", LogLevel.Debug);
+				if (do_collision)
+				{
+					PlayerCollisionCheck(t);
+				}
 			}
 		}
 
@@ -282,19 +272,6 @@ public class ModEntry : Mod
 			);
 
 		return locations;
-	}
-
-	private bool IsTileAt(int tileX, int tileY, GameLocation TileIsAt)
-	{
-		foreach (KaiTile t in tileList)
-		{
-			if (tileX == t.X && tileY == t.Y && TileIsAt == Game1.getLocationFromName(t.Location))
-			{
-				return true;
-			}
-
-		}
-		return false;
 	}
 
 	private void GetTilePrice()
@@ -593,7 +570,6 @@ public class ModEntry : Mod
 					gameLocation.setTileProperty(t.X, t.Y, "Back", "NoSprinklers", "");
 					gameLocation.setTileProperty(t.X, t.Y, "Back", "Placeable", "");
 				}
-				//if (do_collision) gameLocation.setTileProperty(t.tileX, t.tileY, "Back", "Passable", "");
 			}
 		}
 	}
@@ -800,33 +776,6 @@ public class ModEntry : Mod
 		difficulty_mode = tileData.DifficultyMode;
 		purchase_count = tileData.PurchaseCount;
 
-		//
-		//Load Individual Location Information
-
-		System.IO.DirectoryInfo root = new($"{Constants.GamePath}/Mods/Tileman/jsons/{Constants.SaveFolderName}");
-
-		System.IO.FileInfo[] files = root.GetFiles();
-		/*foreach (System.IO.FileInfo file in files)
-            {
-                //Note, file.Name has a '.json' at the end, which messes things up with dictionary keys
-                var fileName = System.IO.Path.GetFileNameWithoutExtension($"{Constants.GamePath}/Mods/Tileman/jsons/{Constants.SaveFolderName}/{file.Name}");
-
-                if (fileName != "config")
-                {
-                    
-                    var fileData = Helper.Data.ReadJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{fileName}.json") ?? new MapData();
-                    tileDict.Add(fileName, fileData.AllKaiTilesList);
-
-                }
-
-            }*/
-
 		Monitor.Log("Mod Data Loaded", LogLevel.Debug);
-	}
-
-	public void createJson(string fileName)
-	{
-		Monitor.Log($"Creating {fileName}.json", LogLevel.Debug);
-		System.IO.File.Create($"jsons/{fileName}.json");
 	}
 }

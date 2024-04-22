@@ -24,7 +24,7 @@ internal static class Extensions
 		return location.isTileOnMap(v) && !location.isTileOccupied(v) && location.isTilePassable(new Location((int)v.X, (int)v.Y), Game1.viewport) && location.isTilePlaceable(v);
 	}
 
-	public static bool isTileOccupied(this GameLocation location, Vector2 tileLocation, string characterToIgnore = "", bool ignoreAllCharacters = false)
+	public static bool isTileOccupied(this GameLocation location, Vector2 tileLocation, bool ignoreAllCharacters = false)
 	{
 		CollisionMask mask = ignoreAllCharacters ? CollisionMask.All & ~CollisionMask.Characters & ~CollisionMask.Farmers : CollisionMask.All;
 		return location.IsTileOccupiedBy(tileLocation, mask);
