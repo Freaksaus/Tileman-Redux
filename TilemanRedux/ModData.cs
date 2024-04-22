@@ -2,13 +2,13 @@
 
 class ModData
 {
-	public bool ToPlaceTiles { get; set; }
-	public bool DoCollision { get; set; }
-	public bool AllowPlayerPlacement { get; set; }
-	public bool ToggleOverlay { get; set; }
-	public double TilePrice { get; set; }
-	public double TilePriceRaise { get; set; }
-	public int CavernsExtra { get; set; }
-	public int DifficultyMode { get; set; }
-	public int PurchaseCount { get; set; }
+	public bool ToPlaceTiles { get; set; } = true;
+	public bool DoCollision { get; set; } = true;
+	public bool AllowPlayerPlacement { get; set; } = false;
+	public bool ToggleOverlay { get; set; } = true;
+	public double TilePrice { get; set; } = 1;
+	public double TilePriceRaise { get; set; } = 0.0008;
+	public int CavernsExtra { get; set; } = 0;
+	public int DifficultyMode { get; set; } = 1;
+	public int PurchaseCount { get; set; } = 0;
 }
