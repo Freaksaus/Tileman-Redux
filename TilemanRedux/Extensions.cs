@@ -14,7 +14,7 @@ internal static class Extensions
 
 	public static bool isTileLocationTotallyClearAndPlaceable(this GameLocation location, Vector2 v)
 	{
-		Vector2 pixel = new Vector2((v.X * Game1.tileSize) + Game1.tileSize / 2, (v.Y * Game1.tileSize) + Game1.tileSize / 2);
+		Vector2 pixel = new((v.X * Game1.tileSize) + Game1.tileSize / 2, (v.Y * Game1.tileSize) + Game1.tileSize / 2);
 		foreach (Furniture f in location.furniture)
 		{
 			if (f.furniture_type != Furniture.rug && !f.isPassable() && f.GetBoundingBox().Contains((int)pixel.X, (int)pixel.Y) && !f.AllowPlacementOnThisTile((int)v.X, (int)v.Y))

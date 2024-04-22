@@ -6,17 +6,19 @@ namespace TilemanRedux;
 
 public class KaiTile
 {
-	public int tileX = 0;
-	public int tileY = 0;
-	public int tileW = Game1.tileSize;
-	public int tileH = Game1.tileSize;
+	public int Width { get; } = Game1.tileSize;
+	public int Height { get; } = Game1.tileSize;
 
-	public string tileIsWhere = null;
+	public int X { get; set; } = 0;
+	public int Y { get; set; } = 0;
+
+	public string Location { get; set; } = null;
+
 	public KaiTile(int TileX, int TileY, string TileIsWhere)
 	{
-		tileX = TileX;
-		tileY = TileY;
-		tileIsWhere = TileIsWhere;
+		X = TileX;
+		Y = TileY;
+		Location = TileIsWhere;
 	}
 
 	public void DrawTile(Texture2D texture, SpriteBatch spriteBatch)
@@ -25,13 +27,13 @@ public class KaiTile
 		float offsetY = Game1.viewport.Y;
 
 		spriteBatch.Draw(texture,
-			Utility.getRectangleCenteredAt(new Vector2((this.tileX + 1) * 64 - offsetX - 32, (this.tileY + 1) * 64 - offsetY - 32), 64),
+			Utility.getRectangleCenteredAt(new Vector2((this.X + 1) * 64 - offsetX - 32, (this.Y + 1) * 64 - offsetY - 32), 64),
 			Color.White);
 	}
 
 	public bool IsSpecifiedTile(int TileX, int TileY, string TileIsWhere)
 	{
-		if (TileX == tileX && TileY == tileY && TileIsWhere == tileIsWhere) return true;
+		if (TileX == X && TileY == Y && TileIsWhere == Location) return true;
 		return false;
 	}
 }

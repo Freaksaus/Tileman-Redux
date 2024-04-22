@@ -11,32 +11,30 @@ namespace TilemanRedux;
 
 public class ModEntry : Mod
 {
-	public bool do_loop = true;
-	public bool do_collision = true;
-	public bool allow_player_placement = false;
-	public bool toggle_overlay = true;
+	private bool do_loop = true;
+	private bool do_collision = true;
+	private readonly bool allow_player_placement = false;
+	private bool toggle_overlay = true;
 	private bool tool_button_pushed = false;
 	private bool location_changed = false;
 
-	public double tile_price = 1.0;
-	public double tile_price_raise = 0.0008;
-	public double dynamic_tile_price;
+	private double tile_price = 1.0;
+	private double tile_price_raise = 0.0008;
+	private double dynamic_tile_price;
 
-	public int caverns_extra = 0;
-	public int difficulty_mode = 0;
-	public int purchase_count = 0;
-	public int overlay_mode = 0;
+	private int caverns_extra = 0;
+	private int difficulty_mode = 0;
+	private int purchase_count = 0;
+	private int overlay_mode = 0;
 
-	int tile_count;
-
-	public int amountLocations = 200;
+	private readonly int amountLocations = 200;
 	private int locationDelay = 0;
 
 	private int collisionTick = 0;
 
 	List<KaiTile> tileList = new();
 	List<KaiTile> ThisLocationTiles = new();
-	Dictionary<string, List<KaiTile>> tileDict = new();
+	readonly Dictionary<string, List<KaiTile>> tileDict = new();
 
 	Texture2D tileTexture = new(Game1.game1.GraphicsDevice, Game1.tileSize, Game1.tileSize);
 	Texture2D tileTexture2 = new(Game1.game1.GraphicsDevice, Game1.tileSize, Game1.tileSize);
@@ -86,15 +84,15 @@ public class ModEntry : Mod
 
 	private void RemoveProperties(KaiTile tile, GameLocation gameLocation)
 	{
-		gameLocation.removeTileProperty(tile.tileX, tile.tileY, "Back", "Buildable");
-		if (gameLocation.doesTileHavePropertyNoNull(tile.tileX, tile.tileY, "Type", "Back") == "Dirt"
-			|| gameLocation.doesTileHavePropertyNoNull(tile.tileX, tile.tileY, "Type", "Back") == "Grass") gameLocation.setTileProperty(tile.tileX, tile.tileY, "Back", "Diggable", "true");
+		gameLocation.removeTileProperty(tile.X, tile.Y, "Back", "Buildable");
+		if (gameLocation.doesTileHavePropertyNoNull(tile.X, tile.Y, "Type", "Back") == "Dirt"
+			|| gameLocation.doesTileHavePropertyNoNull(tile.X, tile.Y, "Type", "Back") == "Grass") gameLocation.setTileProperty(tile.X, tile.Y, "Back", "Diggable", "true");
 
-		gameLocation.removeTileProperty(tile.tileX, tile.tileY, "Back", "NoFurtniture");
-		gameLocation.removeTileProperty(tile.tileX, tile.tileY, "Back", "NoSprinklers");
+		gameLocation.removeTileProperty(tile.X, tile.Y, "Back", "NoFurtniture");
+		gameLocation.removeTileProperty(tile.X, tile.Y, "Back", "NoSprinklers");
 
-		gameLocation.removeTileProperty(tile.tileX, tile.tileY, "Back", "Passable");
-		gameLocation.removeTileProperty(tile.tileX, tile.tileY, "Back", "Placeable");
+		gameLocation.removeTileProperty(tile.X, tile.Y, "Back", "Passable");
+		gameLocation.removeTileProperty(tile.X, tile.Y, "Back", "Placeable");
 
 		ThisLocationTiles.Remove(tile);
 		tileList.Remove(tile);
@@ -219,7 +217,7 @@ public class ModEntry : Mod
 		for (int i = 0; i < ThisLocationTiles.Count; i++)
 		{
 			KaiTile t = ThisLocationTiles[i];
-			if (t.tileIsWhere == Game1.currentLocation.Name || Game1.currentLocation.Name == "Temp")
+			if (t.Location == Game1.currentLocation.Name || Game1.currentLocation.Name == "Temp")
 			{
 				if (toggle_overlay)
 				{
@@ -229,7 +227,7 @@ public class ModEntry : Mod
 					//Cursor
 					if (overlay_mode == 1)
 					{
-						if (Game1.currentCursorTile == new Vector2(t.tileX, t.tileY))
+						if (Game1.currentCursorTile == new Vector2(t.X, t.Y))
 						{
 							texture = tileTexture2;
 
@@ -246,7 +244,7 @@ public class ModEntry : Mod
 					//Keyboard or Controller
 					else
 					{
-						if (Game1.player.nextPositionTile().X == t.tileX && Game1.player.nextPositionTile().Y == t.tileY)
+						if (Game1.player.nextPositionTile().X == t.X && Game1.player.nextPositionTile().Y == t.Y)
 						{
 							texture = tileTexture2;
 
@@ -258,7 +256,7 @@ public class ModEntry : Mod
 							}
 
 							e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(tile_price)}",
-								new Vector2((t.tileX) * 64 - Game1.viewport.X, (t.tileY) * 64 - 64 - Game1.viewport.Y), stringColor);
+								new Vector2((t.X) * 64 - Game1.viewport.X, (t.Y) * 64 - 64 - Game1.viewport.Y), stringColor);
 						}
 					}
 					t.DrawTile(texture, e.SpriteBatch);
@@ -290,7 +288,7 @@ public class ModEntry : Mod
 	{
 		foreach (KaiTile t in tileList)
 		{
-			if (tileX == t.tileX && tileY == t.tileY && TileIsAt == Game1.getLocationFromName(t.tileIsWhere))
+			if (tileX == t.X && tileY == t.Y && TileIsAt == Game1.getLocationFromName(t.Location))
 			{
 				return true;
 			}
@@ -334,7 +332,7 @@ public class ModEntry : Mod
 			//Cursor 
 			if (overlay_mode == 1)
 			{
-				if (Game1.currentCursorTile == new Vector2(t.tileX, t.tileY))
+				if (Game1.currentCursorTile == new Vector2(t.X, t.Y))
 				{
 					PurchaseTileCheck(t);
 				}
@@ -343,7 +341,7 @@ public class ModEntry : Mod
 			else
 			{
 
-				if (Game1.player.nextPositionTile().X == t.tileX && Game1.player.nextPositionTile().Y == t.tileY)
+				if (Game1.player.nextPositionTile().X == t.X && Game1.player.nextPositionTile().Y == t.Y)
 				{
 					PurchaseTileCheck(t);
 				}
@@ -362,22 +360,21 @@ public class ModEntry : Mod
 
 			GetTilePrice();
 
-			tile_count--;
 			purchase_count++;
 
 			Game1.playSound("purchase", 700 + (100 * new Random().Next(0, 7)));
 
 			var gameLocation = Game1.currentLocation;
 
-			gameLocation.removeTileProperty(thisTile.tileX, thisTile.tileY, "Back", "Buildable");
-			if (gameLocation.doesTileHavePropertyNoNull(thisTile.tileX, thisTile.tileY, "Type", "Back") == "Dirt"
-					|| gameLocation.doesTileHavePropertyNoNull(thisTile.tileX, thisTile.tileY, "Type", "Back") == "Grass") gameLocation.setTileProperty(thisTile.tileX, thisTile.tileY, "Back", "Diggable", "true");
+			gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Buildable");
+			if (gameLocation.doesTileHavePropertyNoNull(thisTile.X, thisTile.Y, "Type", "Back") == "Dirt"
+					|| gameLocation.doesTileHavePropertyNoNull(thisTile.X, thisTile.Y, "Type", "Back") == "Grass") gameLocation.setTileProperty(thisTile.X, thisTile.Y, "Back", "Diggable", "true");
 
-			gameLocation.removeTileProperty(thisTile.tileX, thisTile.tileY, "Back", "NoFurniture");
-			gameLocation.removeTileProperty(thisTile.tileX, thisTile.tileY, "Back", "NoSprinklers");
+			gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "NoFurniture");
+			gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "NoSprinklers");
 
-			gameLocation.removeTileProperty(thisTile.tileX, thisTile.tileY, "Back", "Passable");
-			gameLocation.removeTileProperty(thisTile.tileX, thisTile.tileY, "Back", "Placeable");
+			gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Passable");
+			gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Placeable");
 
 			ThisLocationTiles.Remove(thisTile);
 			tileList.Remove(thisTile);
@@ -502,8 +499,6 @@ public class ModEntry : Mod
 					{
 						var t = new KaiTile(i, j, mapLocation.Name);
 						tileList.Add(t);
-
-						tile_count++;
 					}
 				}
 			}
@@ -554,18 +549,14 @@ public class ModEntry : Mod
 
 					location_changed = false;
 				}
-
 			}
 
 			locationDelay--;
-
 		}
-
-
 	}
+
 	private void SaveLocationTiles(GameLocation gameLocation)
 	{
-
 		var locationName = gameLocation.Name;
 
 		if (locationName == "Temp") locationName += Game1.whereIsTodaysFest;
@@ -610,22 +601,17 @@ public class ModEntry : Mod
 
 				if (!allow_player_placement)
 				{
-					gameLocation.removeTileProperty(t.tileX, t.tileY, "Back", "Diggable");
+					gameLocation.removeTileProperty(t.X, t.Y, "Back", "Diggable");
 
-					gameLocation.setTileProperty(t.tileX, t.tileY, "Back", "Buildable", "false");
-					gameLocation.setTileProperty(t.tileX, t.tileY, "Back", "NoFurniture", "true");
-					gameLocation.setTileProperty(t.tileX, t.tileY, "Back", "NoSprinklers", "");
-					gameLocation.setTileProperty(t.tileX, t.tileY, "Back", "Placeable", "");
+					gameLocation.setTileProperty(t.X, t.Y, "Back", "Buildable", "false");
+					gameLocation.setTileProperty(t.X, t.Y, "Back", "NoFurniture", "true");
+					gameLocation.setTileProperty(t.X, t.Y, "Back", "NoSprinklers", "");
+					gameLocation.setTileProperty(t.X, t.Y, "Back", "Placeable", "");
 				}
 				//if (do_collision) gameLocation.setTileProperty(t.tileX, t.tileY, "Back", "Passable", "");
-
-
-
 			}
 		}
-
 	}
-
 
 	private void ResetValues()
 	{
@@ -636,19 +622,12 @@ public class ModEntry : Mod
 		tile_price = 1.0;
 		tile_price_raise = 0.20;
 		purchase_count = 0;
-		tile_count = 0;
 
 		tileList.Clear();
 		ThisLocationTiles.Clear();
 
 		tileDict.Clear();
-
-
-
-
 	}
-
-
 
 	public int CalculateTileSum(int tileCount = 50000, double price = 1.0, double priceIncrease = 0.0008)
 	{
@@ -726,9 +705,9 @@ public class ModEntry : Mod
 
 	private void PlayerCollisionCheck(KaiTile tile)
 	{
-		if (Game1.getLocationFromName(tile.tileIsWhere) == Game1.currentLocation || Game1.currentLocation.Name == "Temp")
+		if (Game1.getLocationFromName(tile.Location) == Game1.currentLocation || Game1.currentLocation.Name == "Temp")
 		{
-			Rectangle tileBox = new(tile.tileX * 64, tile.tileY * 64, tile.tileW, tile.tileH);
+			Rectangle tileBox = new(tile.X * 64, tile.Y * 64, tile.Width, tile.Height);
 			Rectangle playerBox = Game1.player.GetBoundingBox();
 
 			if (playerBox.Intersects(tileBox))
