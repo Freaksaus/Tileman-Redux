@@ -203,8 +203,8 @@ namespace TilemanRedux
 			{
 				toggle_overlay = !toggle_overlay;
 				this.Monitor.Log($"Tileman Overlay set to:{toggle_overlay}", LogLevel.Debug);
-				if (toggle_overlay) Game1.playSoundPitched("coin", 1000);
-				if (!toggle_overlay) Game1.playSoundPitched("coin", 600);
+				if (toggle_overlay) Game1.playSound("coin", 1000);
+				if (!toggle_overlay) Game1.playSound("coin", 600);
 
 			}
 			if (e.Button == SButton.H)
@@ -218,7 +218,7 @@ namespace TilemanRedux
 				}
 
 				Monitor.Log($"Tileman Overlay Mode set to:{mode}", LogLevel.Debug);
-				Game1.playSoundPitched("coin", 1200);
+				Game1.playSound("coin", 1200);
 
 
 			}
@@ -481,7 +481,7 @@ namespace TilemanRedux
 				tile_count--;
 				purchase_count++;
 
-				Game1.playSoundPitched("purchase", 700 + (100 * new Random().Next(0, 7)));
+				Game1.playSound("purchase", 700 + (100 * new Random().Next(0, 7)));
 
 
 
@@ -501,7 +501,7 @@ namespace TilemanRedux
 				tileList.Remove(thisTile);
 
 			}
-			else Game1.playSoundPitched("grunt", 700 + (100 * new Random().Next(0, 7)));
+			else Game1.playSound("grunt", 700 + (100 * new Random().Next(0, 7)));
 
 
 
