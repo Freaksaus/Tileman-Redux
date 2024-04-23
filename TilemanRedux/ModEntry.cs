@@ -40,12 +40,17 @@ public class ModEntry : Mod
 	Texture2D tileTexture2 = new(Game1.game1.GraphicsDevice, Game1.tileSize, Game1.tileSize);
 	Texture2D tileTexture3 = new(Game1.game1.GraphicsDevice, Game1.tileSize, Game1.tileSize);
 
+	private ModConfig _configuration;
+
 	public override void Entry(IModHelper helper)
 	{
+		_configuration = helper.ReadConfig<ModConfig>();
+
 		helper.Events.Input.ButtonReleased += this.OnButtonReleased;
 		helper.Events.Input.ButtonPressed += this.OnButtonPressed;
 		helper.Events.Display.RenderedWorld += this.DrawUpdate;
 
+		helper.Events.GameLoop.GameLaunched += GameLaunched;
 		helper.Events.GameLoop.Saved += this.SaveModData;
 		helper.Events.GameLoop.SaveLoaded += this.LoadModData;
 		helper.Events.GameLoop.DayStarted += this.DayStartedUpdate;
@@ -54,6 +59,37 @@ public class ModEntry : Mod
 		tileTexture = helper.ModContent.Load<Texture2D>("assets/tile.png");
 		tileTexture2 = helper.ModContent.Load<Texture2D>("assets/tile_2.png");
 		tileTexture3 = helper.ModContent.Load<Texture2D>("assets/tile_3.png");
+	}
+
+	private void GameLaunched(object sender, GameLaunchedEventArgs e)
+	{
+		var configurationMenu = this.Helper.ModRegistry.GetApi<Api.IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+		if (configurationMenu is null)
+		{
+			return;
+		}
+
+		configurationMenu.Register(
+			mod: ModManifest,
+			reset: () => _configuration = new ModConfig(),
+			save: () => Helper.WriteConfig(_configuration)
+		);
+
+		_configuration = Helper.ReadConfig<ModConfig>();
+
+		configurationMenu.AddKeybindList(
+			mod: ModManifest,
+			name: () => "Toggle overlay",
+			getValue: () => _configuration.ToggleOverlayKey,
+			setValue: value => _configuration.ToggleOverlayKey = value
+		);
+
+		configurationMenu.AddKeybindList(
+			mod: ModManifest,
+			name: () => "Toggle overlay mode",
+			getValue: () => _configuration.ToggleOverlayModeKey,
+			setValue: value => _configuration.ToggleOverlayModeKey = value
+		);
 	}
 
 	private void RemoveSpecificTile(int xTile, int yTile, string gameLocation)
@@ -145,14 +181,15 @@ public class ModEntry : Mod
 
 		if (Game1.player.isFakeEventActor) return;
 
-		if (e.Button == SButton.G)
+		if (_configuration.ToggleOverlayKey.IsDown())
 		{
 			toggle_overlay = !toggle_overlay;
 			this.Monitor.Log($"Tileman Overlay set to:{toggle_overlay}", LogLevel.Debug);
 			if (toggle_overlay) Game1.playSound("coin", 1000);
 			if (!toggle_overlay) Game1.playSound("coin", 600);
 		}
-		if (e.Button == SButton.H)
+
+		if (_configuration.ToggleOverlayModeKey.IsDown())
 		{
 			overlay_mode++;
 			var mode = "Mouse";
