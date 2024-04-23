@@ -625,67 +625,6 @@ public class ModEntry : Mod
 		tileDict.Clear();
 	}
 
-	public int CalculateTileSum(int tileCount = 50000, decimal price = 1.0M, decimal priceIncrease = 0.0008M)
-	{
-		var totalCost = 0;
-		switch (difficulty_mode)
-		{
-			case 0:
-				for (int i = 0; i < tileCount; i++)
-				{
-					totalCost += (int)Math.Floor(price);
-					price += priceIncrease;
-				}
-				break;
-
-			case 1:
-				price = tile_price;
-
-				for (int i = 0; i < tileCount; i++)
-				{
-					totalCost += (int)price;
-					if (purchase_count > 10) price = 2.0M;
-					if (purchase_count > 100) price = 3.0M;
-					if (purchase_count > 1000) price = 4.0M;
-					if (purchase_count > 10000) price = 5.0M;
-				}
-
-				break;
-			case 2:
-				for (int i = 0; i < tileCount; i++)
-				{
-					totalCost += tileCount;
-				}
-
-				break;
-		}
-		this.Monitor.Log($"Cost of {tileCount} tiles by the end: {totalCost}", LogLevel.Debug);
-
-		return totalCost;
-	}
-
-	public void BuyAllTilesInLocation(GameLocation gameLocation)
-	{
-		var tileData = this.Helper.Data.ReadJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{gameLocation}.json") ?? new MapData();
-		tileList = tileData.AllKaiTilesList;
-
-		if (CalculateTileSum(tileList.Count) <= Game1.player.Money)
-		{
-			for (int i = 0; i < tileList.Count; i++)
-			{
-				PurchaseTileCheck(tileList[i]);
-			}
-
-			var mapData = new MapData
-			{
-				AllKaiTilesList = tileList,
-			};
-
-			Helper.Data.WriteJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{gameLocation}.json", mapData);
-			tileList = new();
-		}
-	}
-
 	private void PlayerCollisionCheck(KaiTile tile)
 	{
 		if (Game1.getLocationFromName(tile.Location) == Game1.currentLocation || Game1.currentLocation.Name == "Temp")
