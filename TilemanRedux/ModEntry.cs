@@ -5,12 +5,13 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace TilemanRedux;
 
 public class ModEntry : Mod
 {
+	private const string SAVE_CONFIG_KEY = "tilemanredux-config";
+
 	private bool do_loop = true;
 	private bool do_collision = true;
 	private readonly bool allow_player_placement = false;
@@ -18,11 +19,10 @@ public class ModEntry : Mod
 	private bool tool_button_pushed = false;
 	private bool location_changed = false;
 
-	private decimal tile_price = 1.0M;
-	private decimal tile_price_raise = 0.0008M;
-	private decimal dynamic_tile_price;
+	private float tile_price = 1.0f;
+	private float tile_price_raise = 0.0008f;
+	private float dynamic_tile_price;
 
-	private int caverns_extra = 0;
 	private int difficulty_mode = 0;
 	private int purchase_count = 0;
 	private int overlay_mode = 0;
@@ -49,6 +49,7 @@ public class ModEntry : Mod
 		helper.Events.Display.RenderedWorld += this.DrawUpdate;
 
 		helper.Events.GameLoop.GameLaunched += GameLaunched;
+		helper.Events.GameLoop.SaveCreated += SaveCreated;
 		helper.Events.GameLoop.Saved += this.SaveModData;
 		helper.Events.GameLoop.SaveLoaded += this.LoadModData;
 		helper.Events.GameLoop.DayStarted += this.DayStartedUpdate;
@@ -57,6 +58,20 @@ public class ModEntry : Mod
 		tileTexture = helper.ModContent.Load<Texture2D>("assets/tile.png");
 		tileTexture2 = helper.ModContent.Load<Texture2D>("assets/tile_2.png");
 		tileTexture3 = helper.ModContent.Load<Texture2D>("assets/tile_3.png");
+	}
+
+	private void SaveCreated(object sender, SaveCreatedEventArgs e)
+	{
+		var data = new ModData()
+		{
+			DifficultyMode = _configuration.DifficultyMode,
+			TilePrice = _configuration.TilePrice,
+			TilePriceRaise = _configuration.TilePriceRaise,
+		};
+
+		Helper.Data.WriteSaveData(SAVE_CONFIG_KEY, data);
+
+		Monitor.Log($"Created mod settings based on default config", LogLevel.Debug);
 	}
 
 	private void GameLaunched(object sender, GameLaunchedEventArgs e)
@@ -88,84 +103,50 @@ public class ModEntry : Mod
 			getValue: () => _configuration.ToggleOverlayModeKey,
 			setValue: value => _configuration.ToggleOverlayModeKey = value
 		);
-	}
 
-	private void RemoveSpecificTile(int xTile, int yTile, string gameLocation)
-	{
-		var tileData = this.Helper.Data.ReadJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{gameLocation}.json") ?? new MapData();
-		var tempList = tileData.AllKaiTilesList;
+		configurationMenu.AddSectionTitle(
+			mod: ModManifest,
+			text: () => "Default settings",
+			tooltip: () => "The default settings used for any new save file.\nThis will not impact your current save!"
+		);
 
-		for (int i = 0; i < tileData.AllKaiTilesList.Count; i++)
-		{
-			KaiTile t = tileData.AllKaiTilesList[i];
+		configurationMenu.AddParagraph(
+			mod: ModManifest,
+			text: () => "These settings will be used for any new save file\nThis will not impact your current save!"
+		);
 
-			if (t.IsSpecifiedTile(xTile, yTile, gameLocation))
-			{
-				tempList.Remove(t);
-				RemoveProperties(t, Game1.getLocationFromName(gameLocation));
-			}
-		}
-		var mapData = new MapData
-		{
-			AllKaiTilesList = tempList,
-		};
+		configurationMenu.AddNumberOption(
+			mod: ModManifest,
+			name: () => "Difficulty",
+			tooltip: () => "The default difficulty used for new save, 1 is the easiest, 3 is the hardest",
+			getValue: () => _configuration.DifficultyMode,
+			setValue: value => _configuration.DifficultyMode = value,
+			min: 0,
+			max: 2
+		);
 
-		Helper.Data.WriteJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{gameLocation}.json", mapData);
-	}
+		configurationMenu.AddParagraph(
+			mod: ModManifest,
+			text: () => "Tile pricing is calculated differently based on the difficulty settings.\n- For difficulty 0 the tile price increases based on the tile price inrease setting\n- For difficulty 1 the tile price doubles at set intervals.These are 1 - 10, 10 - 100, 100 - 1000 etc.\n- For difficulty 2 the tile price increases with 1 for every tile purchased"
+		);
 
-	private void RemoveProperties(KaiTile tile, GameLocation gameLocation)
-	{
-		gameLocation.removeTileProperty(tile.X, tile.Y, "Back", "Buildable");
-		if (gameLocation.doesTileHavePropertyNoNull(tile.X, tile.Y, "Type", "Back") == "Dirt"
-			|| gameLocation.doesTileHavePropertyNoNull(tile.X, tile.Y, "Type", "Back") == "Grass") gameLocation.setTileProperty(tile.X, tile.Y, "Back", "Diggable", "true");
+		configurationMenu.AddNumberOption(
+			mod: ModManifest,
+			name: () => "Tile price",
+			tooltip: () => "The default tile price upon which all tiles are calculated",
+			getValue: () => _configuration.TilePrice,
+			setValue: value => _configuration.TilePrice = value,
+			min: 1
+		);
 
-		gameLocation.removeTileProperty(tile.X, tile.Y, "Back", "NoFurtniture");
-		gameLocation.removeTileProperty(tile.X, tile.Y, "Back", "NoSprinklers");
-
-		gameLocation.removeTileProperty(tile.X, tile.Y, "Back", "Passable");
-		gameLocation.removeTileProperty(tile.X, tile.Y, "Back", "Placeable");
-
-		ThisLocationTiles.Remove(tile);
-	}
-
-	public void RemoveTileExceptions()
-	{
-		this.Monitor.Log("Removing Unusual Tiles", LogLevel.Debug);
-
-		RemoveSpecificTile(18, 27, "Desert");
-		RemoveSpecificTile(12, 9, "BusStop");
-	}
-
-	public void AddTileExceptions()
-	{
-		this.Monitor.Log("Placing Unusual Tiles", LogLevel.Debug);
-
-		var tempName = "Town";
-
-		//ADD UNUSAL TILES HERE
-		tileDict[tempName].Add(new KaiTile(21, 42, tempName));
-		tileDict[tempName].Add(new KaiTile(21, 43, tempName));
-		tileDict[tempName].Add(new KaiTile(21, 44, tempName));
-		tileDict[tempName].Add(new KaiTile(21, 45, tempName));
-		tileDict[tempName].Add(new KaiTile(21, 46, tempName));
-
-		tileDict[tempName].Add(new KaiTile(49, 42, tempName));
-		tileDict[tempName].Add(new KaiTile(49, 43, tempName));
-		tileDict[tempName].Add(new KaiTile(49, 44, tempName));
-		tileDict[tempName].Add(new KaiTile(49, 45, tempName));
-		tileDict[tempName].Add(new KaiTile(49, 46, tempName));
-		tileDict[tempName].Add(new KaiTile(49, 47, tempName));
-		tileDict[tempName].Add(new KaiTile(49, 48, tempName));
-		tileDict[tempName].Add(new KaiTile(49, 49, tempName));
-		tileDict[tempName].Add(new KaiTile(49, 50, tempName));
-		tileDict[tempName].Add(new KaiTile(49, 51, tempName));
-
-		tileDict[tempName].Add(new KaiTile(55, 102, tempName));
-		tileDict[tempName].Add(new KaiTile(55, 103, tempName));
-		tileDict[tempName].Add(new KaiTile(55, 104, tempName));
-		tileDict[tempName].Add(new KaiTile(55, 105, tempName));
-		tileDict[tempName].Add(new KaiTile(55, 106, tempName));
-		tileDict[tempName].Add(new KaiTile(55, 107, tempName));
+		configurationMenu.AddNumberOption(
+			mod: ModManifest,
+			name: () => "Tile price increase",
+			tooltip: () => "The tile price increase per tile, only used on the easiest difficulty",
+			getValue: () => _configuration.TilePriceRaise,
+			setValue: value => _configuration.TilePriceRaise = value,
+			min: 0f
+		);
 	}
 
 	private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
@@ -294,19 +275,6 @@ public class ModEntry : Mod
 		if (tool_button_pushed) PurchaseTilePreCheck();
 	}
 
-	private static IEnumerable<GameLocation> GetLocations()
-	{
-		var locations = Game1.locations
-			.Concat(
-				from location in Game1.locations.Where(x => x.IsBuildableLocation())
-				from building in location.buildings
-				where building.indoors.Value != null
-				select building.indoors.Value
-			);
-
-		return locations;
-	}
-
 	private void GetTilePrice()
 	{
 		switch (difficulty_mode)
@@ -389,69 +357,6 @@ public class ModEntry : Mod
 		gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Placeable");
 
 		ThisLocationTiles.Remove(thisTile);
-	}
-
-	private void PlaceInMaps()
-	{
-		if (!Context.IsWorldReady || !do_loop)
-		{
-			return;
-		}
-
-		foreach (GameLocation location in GetLocations())
-		{
-			if (!tileDict.ContainsKey(location.Name))
-			{
-				Monitor.Log($"Placing Tiles in: {location.Name}", LogLevel.Debug);
-
-				var tiles = GetTilesForLocation(Game1.getLocationFromName(location.NameOrUniqueName));
-
-				tileDict.Add(location.Name, tiles);
-			}
-		}
-
-		//Place Tiles in the Mine // Mine 1-120 // Skull Caverns 121-???
-		for (int i = 1; i <= 220 + caverns_extra; i++)
-		{
-			var mineString = Game1.getLocationFromName("UndergroundMine" + i).Name;
-
-			if (!tileDict.ContainsKey(mineString) && Game1.getLocationFromName(mineString) != null)
-			{
-				var tiles = GetTilesForLocation(Game1.getLocationFromName(mineString));
-				Monitor.Log($"Placing Tiles in: {mineString}", LogLevel.Debug);
-
-				tileDict.Add(mineString, tiles);
-			}
-		}
-
-		//VolcanoDungeon0 - 9
-		for (int i = 0; i <= 9; i++)
-		{
-			var mineString = Game1.getLocationFromName("VolcanoDungeon" + i).Name;
-
-			if (!tileDict.ContainsKey(mineString) && Game1.getLocationFromName(mineString) != null)
-			{
-				var tiles = GetTilesForLocation(Game1.getLocationFromName(mineString));
-				Monitor.Log($"Placing Tiles in: {mineString}", LogLevel.Debug);
-
-				tileDict.Add(mineString, tiles);
-			}
-		}
-
-		AddTileExceptions();
-		RemoveTileExceptions();
-
-		do_loop = false;
-
-		//Save all the created files
-		foreach (KeyValuePair<string, List<KaiTile>> entry in tileDict)
-		{
-			SaveLocationTiles(Game1.getLocationFromName(entry.Key));
-		}
-		tileDict.Clear();
-
-		Monitor.Log("Press 'G' to toggle Tileman Overlay", LogLevel.Debug);
-		Monitor.Log("Press 'H' to switch between Overlay Modes", LogLevel.Debug);
 	}
 
 	private void PlaceInTempArea(GameLocation gameLocation)
@@ -615,8 +520,8 @@ public class ModEntry : Mod
 		toggle_overlay = true;
 		do_collision = true;
 
-		tile_price = 1.0M;
-		tile_price_raise = 0.20M;
+		tile_price = 1.0f;
+		tile_price_raise = 0.20f;
 		purchase_count = 0;
 
 		ThisLocationTiles.Clear();
@@ -704,44 +609,57 @@ public class ModEntry : Mod
 		}
 		tileDict.Clear();
 
-		var tileData = new ModData
+		var data = new ModData
 		{
 			ToPlaceTiles = do_loop,
 			DoCollision = do_collision,
 			ToggleOverlay = toggle_overlay,
 			TilePrice = tile_price,
 			TilePriceRaise = tile_price_raise,
-			CavernsExtra = caverns_extra,
 			DifficultyMode = difficulty_mode,
 			PurchaseCount = purchase_count
 		};
 
-		Helper.Data.WriteJsonFile<ModData>($"jsons/{Constants.SaveFolderName}/config.json", tileData);
+		Helper.Data.WriteSaveData<ModData>(SAVE_CONFIG_KEY, data);
 	}
 
 	private void LoadModData(object sender, SaveLoadedEventArgs e)
 	{
-		var tileData = Helper.Data.ReadJsonFile<ModData>("config.json") ?? new ModData();
+		ConvertModConfigToSaveConfig();
 
-		//Load config Information
-		if (Helper.Data.ReadJsonFile<ModData>($"jsons/{Constants.SaveFolderName}/config.json") != null)
-		{
-			tileData = Helper.Data.ReadJsonFile<ModData>($"jsons/{Constants.SaveFolderName}/config.json") ?? new ModData();
-		}
-		else
-		{
-			Helper.Data.WriteJsonFile<ModData>($"jsons/{Constants.SaveFolderName}/config.json", tileData);
-		}
+		var data = Helper.Data.ReadSaveData<ModData>(SAVE_CONFIG_KEY);
 
-		do_loop = tileData.ToPlaceTiles;
-		toggle_overlay = tileData.ToggleOverlay;
-		do_collision = tileData.DoCollision;
-		tile_price = tileData.TilePrice;
-		tile_price_raise = tileData.TilePriceRaise;
-		caverns_extra = tileData.CavernsExtra;
-		difficulty_mode = tileData.DifficultyMode;
-		purchase_count = tileData.PurchaseCount;
+		do_loop = data.ToPlaceTiles;
+		toggle_overlay = data.ToggleOverlay;
+		do_collision = data.DoCollision;
+		tile_price = data.TilePrice;
+		tile_price_raise = data.TilePriceRaise;
+		difficulty_mode = data.DifficultyMode;
+		purchase_count = data.PurchaseCount;
 
 		Monitor.Log("Mod Data Loaded", LogLevel.Debug);
+	}
+
+	/// <summary>
+	/// Replace the old config file that was saved in the mod directory.
+	/// </summary>
+	/// <remarks>
+	/// Converts and removes the old config if it exists and saves it to the actual save file so it gets synced with cloud saves
+	/// </remarks>
+	private void ConvertModConfigToSaveConfig()
+	{
+		var saveConfigFile = $"jsons/{Constants.SaveFolderName}/config.json";
+		var saveConfigPath = System.IO.Path.Combine(Helper.DirectoryPath, saveConfigFile);
+
+		if (System.IO.File.Exists(saveConfigPath))
+		{
+			var data = Helper.Data.ReadJsonFile<ModData>(saveConfigFile);
+			data ??= new();
+
+			Helper.Data.WriteSaveData(SAVE_CONFIG_KEY, data);
+
+			System.IO.File.Delete(saveConfigPath);
+			Monitor.Log("Converted old config file to save data", LogLevel.Debug);
+		}
 	}
 }
