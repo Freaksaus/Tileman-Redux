@@ -18,6 +18,11 @@ internal sealed class ModConfig
 	public KeybindList ToggleOverlayModeKey { get; set; } = KeybindList.Parse("H");
 
 	/// <summary>
+	/// Keybinding used to change the difficulty
+	/// </summary>
+	public KeybindList ChangeDifficultyKey { get; set; }
+
+	/// <summary>
 	/// Default tile price, this gets used as the base price upon which the prices get raised based on the difficulty
 	/// </summary>
 	public int TilePrice { get; set; } = 1;

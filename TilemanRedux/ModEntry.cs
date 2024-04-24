@@ -104,6 +104,13 @@ public class ModEntry : Mod
 			setValue: value => _configuration.ToggleOverlayModeKey = value
 		);
 
+		configurationMenu.AddKeybindList(
+			mod: ModManifest,
+			name: () => "Change difficulty",
+			getValue: () => _configuration.ChangeDifficultyKey,
+			setValue: value => _configuration.ChangeDifficultyKey = value
+		);
+
 		configurationMenu.AddSectionTitle(
 			mod: ModManifest,
 			text: () => "Default settings",
@@ -151,12 +158,20 @@ public class ModEntry : Mod
 
 	private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
 	{
-		// ignore if player hasn't loaded a save yet
-		if (!Context.IsWorldReady) return;
+		if (!Context.IsWorldReady)
+		{
+			return;
+		}
 
-		if (!Context.IsPlayerFree) return;
+		if (!Context.IsPlayerFree)
+		{
+			return;
+		}
 
-		if (Game1.player.isFakeEventActor) return;
+		if (Game1.player.isFakeEventActor)
+		{
+			return;
+		}
 
 		if (_configuration.ToggleOverlayKey.IsDown())
 		{
@@ -180,9 +195,26 @@ public class ModEntry : Mod
 			Game1.playSound("coin", 1200);
 		}
 
-		if (!toggle_overlay) return;
+		if (_configuration.ChangeDifficultyKey.IsDown())
+		{
+			difficulty_mode++;
+			if (difficulty_mode > 2)
+			{
+				difficulty_mode = 0;
+			}
 
-		if (e.Button.IsUseToolButton()) tool_button_pushed = true;
+			Game1.addHUDMessage(new($"Changed difficulty to {difficulty_mode}"));
+		}
+
+		if (!toggle_overlay)
+		{
+			return;
+		}
+
+		if (e.Button.IsUseToolButton())
+		{
+			tool_button_pushed = true;
+		}
 	}
 
 	private void OnButtonReleased(object sender, ButtonReleasedEventArgs e)
