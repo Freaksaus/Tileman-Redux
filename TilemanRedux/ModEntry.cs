@@ -27,12 +27,10 @@ public class ModEntry : Mod
 	private int purchase_count = 0;
 	private int overlay_mode = 0;
 
-	private readonly int amountLocations = 200;
 	private int locationDelay = 0;
 
 	private int collisionTick = 0;
 
-	List<KaiTile> tileList = new();
 	List<KaiTile> ThisLocationTiles = new();
 	readonly Dictionary<string, List<KaiTile>> tileDict = new();
 
@@ -113,7 +111,6 @@ public class ModEntry : Mod
 		};
 
 		Helper.Data.WriteJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{gameLocation}.json", mapData);
-		tileList = new();
 	}
 
 	private void RemoveProperties(KaiTile tile, GameLocation gameLocation)
@@ -129,7 +126,6 @@ public class ModEntry : Mod
 		gameLocation.removeTileProperty(tile.X, tile.Y, "Back", "Placeable");
 
 		ThisLocationTiles.Remove(tile);
-		tileList.Remove(tile);
 	}
 
 	public void RemoveTileExceptions()
@@ -215,7 +211,8 @@ public class ModEntry : Mod
 
 	private void DayStartedUpdate(object sender, DayStartedEventArgs e)
 	{
-		PlaceInMaps();
+		Monitor.Log("Day started", LogLevel.Debug);
+
 		GetLocationTiles(Game1.currentLocation);
 	}
 
@@ -353,7 +350,6 @@ public class ModEntry : Mod
 			//Keyboard or Controller
 			else
 			{
-
 				if (Game1.player.nextPositionTile().X == t.X && Game1.player.nextPositionTile().Y == t.Y)
 				{
 					PurchaseTileCheck(t);
@@ -393,7 +389,6 @@ public class ModEntry : Mod
 		gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Placeable");
 
 		ThisLocationTiles.Remove(thisTile);
-		tileList.Remove(thisTile);
 	}
 
 	private void PlaceInMaps()
@@ -403,27 +398,15 @@ public class ModEntry : Mod
 			return;
 		}
 
-		var locationCount = 0;
 		foreach (GameLocation location in GetLocations())
 		{
 			if (!tileDict.ContainsKey(location.Name))
 			{
 				Monitor.Log($"Placing Tiles in: {location.Name}", LogLevel.Debug);
 
-				locationCount++;
+				var tiles = GetTilesForLocation(Game1.getLocationFromName(location.NameOrUniqueName));
 
-				if (locationCount < amountLocations)
-				{
-					PlaceTiles(Game1.getLocationFromName(location.NameOrUniqueName));
-
-				}
-				else
-				{
-					break;
-				}
-
-				tileDict.Add(location.Name, tileList);
-				tileList = new();
+				tileDict.Add(location.Name, tiles);
 			}
 		}
 
@@ -434,11 +417,10 @@ public class ModEntry : Mod
 
 			if (!tileDict.ContainsKey(mineString) && Game1.getLocationFromName(mineString) != null)
 			{
-				PlaceTiles(Game1.getLocationFromName(mineString));
+				var tiles = GetTilesForLocation(Game1.getLocationFromName(mineString));
 				Monitor.Log($"Placing Tiles in: {mineString}", LogLevel.Debug);
 
-				tileDict.Add(mineString, tileList);
-				tileList = new();
+				tileDict.Add(mineString, tiles);
 			}
 		}
 
@@ -449,11 +431,10 @@ public class ModEntry : Mod
 
 			if (!tileDict.ContainsKey(mineString) && Game1.getLocationFromName(mineString) != null)
 			{
-				PlaceTiles(Game1.getLocationFromName(mineString));
+				var tiles = GetTilesForLocation(Game1.getLocationFromName(mineString));
 				Monitor.Log($"Placing Tiles in: {mineString}", LogLevel.Debug);
 
-				tileDict.Add(mineString, tileList);
-				tileList = new();
+				tileDict.Add(mineString, tiles);
 			}
 		}
 
@@ -477,15 +458,16 @@ public class ModEntry : Mod
 	{
 		Monitor.Log($"Placing Tiles in Temporary Area: {Game1.whereIsTodaysFest}", LogLevel.Debug);
 
-		PlaceTiles(gameLocation);
-		ThisLocationTiles = tileList;
-		tileList = new();
+		var tiles = GetTilesForLocation(gameLocation);
+		ThisLocationTiles = tiles;
 	}
 
-	private void PlaceTiles(GameLocation mapLocation)
+	private static List<KaiTile> GetTilesForLocation(GameLocation mapLocation)
 	{
 		int mapWidth = mapLocation.map.Layers[0].LayerWidth;
 		int mapHeight = mapLocation.map.Layers[0].LayerHeight;
+
+		var tiles = new List<KaiTile>();
 
 		for (int i = 1; i < mapWidth - 1; i++)
 		{
@@ -500,11 +482,12 @@ public class ModEntry : Mod
 					&& mapLocation.isCharacterAtTile(new Vector2(i, j)) == null
 					&& new Vector2(Game1.player.position.X, Game1.player.position.Y) != new Vector2(i, j))
 				{
-					var t = new KaiTile(i, j, mapLocation.Name);
-					tileList.Add(t);
+					tiles.Add(new(i, j, mapLocation.Name));
 				}
 			}
 		}
+
+		return tiles;
 	}
 
 	private void GroupIfLocationChange()
@@ -539,13 +522,12 @@ public class ModEntry : Mod
 					{
 						Monitor.Log($"Grouping Tiles At: {Game1.currentLocation.NameOrUniqueName}", LogLevel.Debug);
 						GetLocationTiles(Game1.currentLocation);
-
 					}
+
 					location_changed = false;
 				}
 				else
 				{
-
 					Monitor.Log($"Grouping Tiles At: {Game1.currentLocation.NameOrUniqueName}", LogLevel.Debug);
 					GetLocationTiles(Game1.currentLocation);
 
@@ -567,28 +549,46 @@ public class ModEntry : Mod
 		var tileData = Helper.Data.ReadJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{locationName}.json") ?? new MapData();
 
 		if (gameLocation.Name == "Temp")
-		{ tileData.AllKaiTilesList = ThisLocationTiles; }
+		{
+			tileData.AllKaiTilesList = ThisLocationTiles;
+		}
 		else
 		{
 			tileData.AllKaiTilesList = tileDict[locationName];
 		}
 		Helper.Data.WriteJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{locationName}.json", tileData);
 	}
+
 	private void GetLocationTiles(GameLocation gameLocation)
 	{
+		Monitor.Log($"Get location tiles: {gameLocation.Name}", LogLevel.Debug);
+
 		var locationName = gameLocation.Name;
 
-		if (locationName == "Temp") locationName += Game1.whereIsTodaysFest;
-
-		if (tileDict.ContainsKey(locationName))
+		if (locationName == "Temp")
 		{
-			ThisLocationTiles = tileDict[locationName];
+			locationName += Game1.whereIsTodaysFest;
 		}
-		else
+
+		if (!tileDict.ContainsKey(locationName))
 		{
-			var tileData = Helper.Data.ReadJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{locationName}.json") ?? new MapData();
-			if (tileData.AllKaiTilesList.Count > 0) ThisLocationTiles = tileData.AllKaiTilesList;
-			if (gameLocation.Name != "Temp") tileDict.Add(locationName, ThisLocationTiles);
+			var savedTiles = Helper.Data.ReadJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{locationName}.json");
+			if (savedTiles is not null)
+			{
+				tileDict.Add(locationName, savedTiles.AllKaiTilesList);
+			}
+		}
+
+		if (!tileDict.ContainsKey(locationName))
+		{
+			var tiles = GetTilesForLocation(gameLocation);
+			tileDict.Add(gameLocation.Name, tiles);
+		}
+
+		ThisLocationTiles = tileDict[locationName];
+		if (ThisLocationTiles.Count == 0)
+		{
+			Monitor.Log($"All tiles for {locationName} have been bought?", LogLevel.Debug);
 		}
 
 		if (gameLocation.Name != "Temp")
@@ -619,7 +619,6 @@ public class ModEntry : Mod
 		tile_price_raise = 0.20M;
 		purchase_count = 0;
 
-		tileList.Clear();
 		ThisLocationTiles.Clear();
 
 		tileDict.Clear();
