@@ -12,7 +12,6 @@ public class ModEntry : Mod
 {
 	private const string SAVE_CONFIG_KEY = "tilemanredux-config";
 
-	private bool do_loop = true;
 	private bool do_collision = true;
 	private readonly bool allow_player_placement = false;
 	private bool toggle_overlay = true;
@@ -548,7 +547,6 @@ public class ModEntry : Mod
 	}
 	private void ResetValues()
 	{
-		do_loop = true;
 		toggle_overlay = true;
 		do_collision = true;
 
@@ -643,7 +641,6 @@ public class ModEntry : Mod
 
 		var data = new ModData
 		{
-			ToPlaceTiles = do_loop,
 			DoCollision = do_collision,
 			ToggleOverlay = toggle_overlay,
 			TilePrice = tile_price,
@@ -661,7 +658,6 @@ public class ModEntry : Mod
 
 		var data = Helper.Data.ReadSaveData<ModData>(SAVE_CONFIG_KEY);
 
-		do_loop = data.ToPlaceTiles;
 		toggle_overlay = data.ToggleOverlay;
 		do_collision = data.DoCollision;
 		tile_price = data.TilePrice;
