@@ -408,14 +408,15 @@ public sealed class ModEntry : Mod
 		{
 			for (int j = 1; j < mapHeight - 1; j++)
 			{
+				var vector = new Vector2(i, j);
 				if (!mapLocation.isObjectAtTile(i, j)
 					&& !mapLocation.isOpenWater(i, j)
 					&& !mapLocation.isTerrainFeatureAt(i, j)
-					&& mapLocation.isTilePlaceable(new Vector2(i, j))
-					&& mapLocation.isTileLocationTotallyClearAndPlaceable(new Vector2(i, j))
+					&& mapLocation.isTilePlaceable(vector)
+					&& mapLocation.isTileLocationTotallyClearAndPlaceable(vector)
 					&& mapLocation.Map.Layers[0].IsValidTileLocation(i, j)
-					&& mapLocation.isCharacterAtTile(new Vector2(i, j)) == null
-					&& new Vector2(Game1.player.position.X, Game1.player.position.Y) != new Vector2(i, j))
+					&& mapLocation.isCharacterAtTile(vector) == null
+					&& new Vector2(Game1.player.position.X, Game1.player.position.Y) != vector)
 				{
 					tiles.Add(new(i, j, mapLocation.Name));
 				}
