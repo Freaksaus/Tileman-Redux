@@ -11,6 +11,7 @@ namespace TilemanRedux;
 public sealed class ModEntry : Mod
 {
 	private const string SAVE_CONFIG_KEY = "tilemanredux-config";
+	private const string TEMPORARY_LOCATION_NAME = "Temp";
 
 	private bool tool_button_pushed = false;
 	private bool location_changed = false;
@@ -250,7 +251,7 @@ public sealed class ModEntry : Mod
 		for (int i = 0; i < ThisLocationTiles.Count; i++)
 		{
 			KaiTile t = ThisLocationTiles[i];
-			if (t.Location == Game1.currentLocation.Name || Game1.currentLocation.Name == "Temp")
+			if (t.Location == Game1.currentLocation.Name || Game1.currentLocation.Name == TEMPORARY_LOCATION_NAME)
 			{
 				if (_data.ToggleOverlay)
 				{
@@ -435,7 +436,7 @@ public sealed class ModEntry : Mod
 				locationDelay = 35;
 				location_changed = true;
 
-				if (Game1.currentLocation.Name == "Temp")
+				if (Game1.currentLocation.Name == TEMPORARY_LOCATION_NAME)
 				{
 					SaveLocationTiles(Game1.currentLocation);
 				}
@@ -446,7 +447,7 @@ public sealed class ModEntry : Mod
 			if (locationDelay <= 0)
 			{
 				//First encounter with specific Temp area
-				if (Game1.currentLocation.Name == "Temp")
+				if (Game1.currentLocation.Name == TEMPORARY_LOCATION_NAME)
 				{
 					if (Helper.Data.ReadJsonFile<MapData>($"jsons/" +
 						$"{Constants.SaveFolderName}/" +
@@ -479,12 +480,16 @@ public sealed class ModEntry : Mod
 	{
 		var locationName = gameLocation.Name;
 
-		if (locationName == "Temp") locationName += Game1.whereIsTodaysFest;
+		if (locationName == TEMPORARY_LOCATION_NAME)
+		{
+			locationName += Game1.whereIsTodaysFest;
+		}
+
 		Monitor.Log($"Saving in {locationName}", LogLevel.Debug);
 
 		var tileData = Helper.Data.ReadJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{locationName}.json") ?? new MapData();
 
-		if (gameLocation.Name == "Temp")
+		if (gameLocation.Name == TEMPORARY_LOCATION_NAME)
 		{
 			tileData.AllKaiTilesList = ThisLocationTiles;
 		}
@@ -501,7 +506,7 @@ public sealed class ModEntry : Mod
 
 		var locationName = gameLocation.Name;
 
-		if (locationName == "Temp")
+		if (locationName == TEMPORARY_LOCATION_NAME)
 		{
 			locationName += Game1.whereIsTodaysFest;
 		}
@@ -527,7 +532,7 @@ public sealed class ModEntry : Mod
 			Monitor.Log($"All tiles for {locationName} have been bought?", LogLevel.Debug);
 		}
 
-		if (gameLocation.Name != "Temp")
+		if (gameLocation.Name != TEMPORARY_LOCATION_NAME)
 		{
 			for (int i = 0; i < ThisLocationTiles.Count; i++)
 			{
@@ -556,7 +561,7 @@ public sealed class ModEntry : Mod
 
 	private void PlayerCollisionCheck(KaiTile tile)
 	{
-		if (Game1.getLocationFromName(tile.Location) == Game1.currentLocation || Game1.currentLocation.Name == "Temp")
+		if (Game1.getLocationFromName(tile.Location) == Game1.currentLocation || Game1.currentLocation.Name == TEMPORARY_LOCATION_NAME)
 		{
 			Rectangle tileBox = new(tile.X * 64, tile.Y * 64, tile.Width, tile.Height);
 			Rectangle playerBox = Game1.player.GetBoundingBox();
