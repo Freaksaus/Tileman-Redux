@@ -1,6 +1,6 @@
 ﻿namespace TilemanRedux;
 
-class ModData
+internal sealed class ModData
 {
 	public bool ToPlaceTiles { get; set; } = true;
 	public bool DoCollision { get; set; } = true;
@@ -10,4 +10,5 @@ class ModData
 	public float TilePriceRaise { get; set; } = 0.0008f;
 	public int DifficultyMode { get; set; } = 1;
 	public int PurchaseCount { get; set; } = 0;
+	public int OverlayMode { get; set; } = 0;
 }

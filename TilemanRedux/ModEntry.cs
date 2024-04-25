@@ -12,19 +12,10 @@ public class ModEntry : Mod
 {
 	private const string SAVE_CONFIG_KEY = "tilemanredux-config";
 
-	private bool do_collision = true;
-	private readonly bool allow_player_placement = false;
-	private bool toggle_overlay = true;
 	private bool tool_button_pushed = false;
 	private bool location_changed = false;
 
-	private float tile_price = 1.0f;
-	private float tile_price_raise = 0.0008f;
 	private float dynamic_tile_price;
-
-	private int difficulty_mode = 0;
-	private int purchase_count = 0;
-	private int overlay_mode = 0;
 
 	private int locationDelay = 0;
 
@@ -38,6 +29,7 @@ public class ModEntry : Mod
 	Texture2D tileTexture3 = new(Game1.game1.GraphicsDevice, Game1.tileSize, Game1.tileSize);
 
 	private ModConfig _configuration;
+	private ModData _data;
 
 	public override void Entry(IModHelper helper)
 	{
@@ -174,20 +166,27 @@ public class ModEntry : Mod
 
 		if (_configuration.ToggleOverlayKey.IsDown())
 		{
-			toggle_overlay = !toggle_overlay;
-			this.Monitor.Log($"Tileman Overlay set to:{toggle_overlay}", LogLevel.Debug);
-			if (toggle_overlay) Game1.playSound("coin", 1000);
-			if (!toggle_overlay) Game1.playSound("coin", 600);
+			_data.ToggleOverlay = !_data.ToggleOverlay;
+			this.Monitor.Log($"Tileman Overlay set to:{_data.ToggleOverlay}", LogLevel.Debug);
+
+			if (_data.ToggleOverlay)
+			{
+				Game1.playSound("coin", 1000);
+			}
+			else
+			{
+				Game1.playSound("coin", 600);
+			}
 		}
 
 		if (_configuration.ToggleOverlayModeKey.IsDown())
 		{
-			overlay_mode++;
+			_data.OverlayMode++;
 			var mode = "Mouse";
-			if (overlay_mode > 1)
+			if (_data.OverlayMode > 1)
 			{
 				mode = "Controller";
-				overlay_mode = 0;
+				_data.OverlayMode = 0;
 			}
 
 			Monitor.Log($"Tileman Overlay Mode set to:{mode}", LogLevel.Debug);
@@ -196,16 +195,16 @@ public class ModEntry : Mod
 
 		if (_configuration.ChangeDifficultyKey.IsDown())
 		{
-			difficulty_mode++;
-			if (difficulty_mode > 2)
+			_data.DifficultyMode++;
+			if (_data.DifficultyMode > 2)
 			{
-				difficulty_mode = 0;
+				_data.DifficultyMode = 0;
 			}
 
-			Game1.addHUDMessage(new($"Changed difficulty to {difficulty_mode}"));
+			Game1.addHUDMessage(new($"Changed difficulty to {_data.DifficultyMode}"));
 		}
 
-		if (!toggle_overlay)
+		if (!_data.ToggleOverlay)
 		{
 			return;
 		}
@@ -253,13 +252,13 @@ public class ModEntry : Mod
 			KaiTile t = ThisLocationTiles[i];
 			if (t.Location == Game1.currentLocation.Name || Game1.currentLocation.Name == "Temp")
 			{
-				if (toggle_overlay)
+				if (_data.ToggleOverlay)
 				{
 					var texture = tileTexture;
 					var stringColor = Color.Gold;
 
 					//Cursor
-					if (overlay_mode == 1)
+					if (_data.OverlayMode == 1)
 					{
 						if (Game1.currentCursorTile == new Vector2(t.X, t.Y))
 						{
@@ -296,7 +295,7 @@ public class ModEntry : Mod
 				}
 
 				//Prevent player from being pushed out of bounds
-				if (do_collision)
+				if (_data.DoCollision)
 				{
 					PlayerCollisionCheck(t);
 				}
@@ -308,26 +307,26 @@ public class ModEntry : Mod
 
 	private void GetTilePrice()
 	{
-		switch (difficulty_mode)
+		switch (_data.DifficultyMode)
 		{
 			case 0:
 				//Slowly increase tile cost over time // Change 0 for initial buffer
-				if (purchase_count > 0) dynamic_tile_price += tile_price_raise;
+				if (_data.PurchaseCount > 0) dynamic_tile_price += _data.TilePriceRaise;
 				break;
 
 			case 1:
 				//Increase tile cost through milestones
-				if (purchase_count > 1) dynamic_tile_price = tile_price * 2;
-				if (purchase_count > 10) dynamic_tile_price = tile_price * 4;
-				if (purchase_count > 100) dynamic_tile_price = tile_price * 8;
-				if (purchase_count > 1000) dynamic_tile_price = tile_price * 16;
-				if (purchase_count > 10000) dynamic_tile_price = tile_price * 32;
-				if (purchase_count > 100000) dynamic_tile_price = tile_price * 64;
+				if (_data.PurchaseCount > 1) dynamic_tile_price = _data.TilePrice * 2;
+				if (_data.PurchaseCount > 10) dynamic_tile_price = _data.TilePrice * 4;
+				if (_data.PurchaseCount > 100) dynamic_tile_price = _data.TilePrice * 8;
+				if (_data.PurchaseCount > 1000) dynamic_tile_price = _data.TilePrice * 16;
+				if (_data.PurchaseCount > 10000) dynamic_tile_price = _data.TilePrice * 32;
+				if (_data.PurchaseCount > 100000) dynamic_tile_price = _data.TilePrice * 64;
 
 				break;
 			case 2:
 				//Increment tile price with each one purchased
-				dynamic_tile_price = purchase_count;
+				dynamic_tile_price = _data.PurchaseCount;
 				break;
 		}
 	}
@@ -339,7 +338,7 @@ public class ModEntry : Mod
 			KaiTile t = ThisLocationTiles[i];
 
 			//Cursor 
-			if (overlay_mode == 1)
+			if (_data.OverlayMode == 1)
 			{
 				if (Game1.currentCursorTile == new Vector2(t.X, t.Y))
 				{
@@ -371,7 +370,7 @@ public class ModEntry : Mod
 
 		GetTilePrice();
 
-		purchase_count++;
+		_data.PurchaseCount++;
 
 		Game1.playSound("purchase", 700 + (100 * new Random().Next(0, 7)));
 
@@ -533,7 +532,7 @@ public class ModEntry : Mod
 			{
 				var t = ThisLocationTiles[i];
 
-				if (!allow_player_placement)
+				if (!_data.AllowPlayerPlacement)
 				{
 					gameLocation.removeTileProperty(t.X, t.Y, "Back", "Diggable");
 
@@ -545,15 +544,10 @@ public class ModEntry : Mod
 			}
 		}
 	}
+
 	private void ResetValues()
 	{
-		toggle_overlay = true;
-		do_collision = true;
-
-		tile_price = 1.0f;
-		tile_price_raise = 0.20f;
-		purchase_count = 0;
-
+		_data = new();
 		ThisLocationTiles.Clear();
 
 		tileDict.Clear();
@@ -620,7 +614,7 @@ public class ModEntry : Mod
 			{
 				if (collisionTick > 120)
 				{
-					Game1.player.Money += (int)tile_price;
+					Game1.player.Money += (int)_data.TilePrice;
 					collisionTick = 0;
 					PurchaseTileCheck(tile);
 				}
@@ -639,31 +633,14 @@ public class ModEntry : Mod
 		}
 		tileDict.Clear();
 
-		var data = new ModData
-		{
-			DoCollision = do_collision,
-			ToggleOverlay = toggle_overlay,
-			TilePrice = tile_price,
-			TilePriceRaise = tile_price_raise,
-			DifficultyMode = difficulty_mode,
-			PurchaseCount = purchase_count
-		};
-
-		Helper.Data.WriteSaveData<ModData>(SAVE_CONFIG_KEY, data);
+		Helper.Data.WriteSaveData<ModData>(SAVE_CONFIG_KEY, _data);
 	}
 
 	private void LoadModData(object sender, SaveLoadedEventArgs e)
 	{
 		ConvertModConfigToSaveConfig();
 
-		var data = Helper.Data.ReadSaveData<ModData>(SAVE_CONFIG_KEY);
-
-		toggle_overlay = data.ToggleOverlay;
-		do_collision = data.DoCollision;
-		tile_price = data.TilePrice;
-		tile_price_raise = data.TilePriceRaise;
-		difficulty_mode = data.DifficultyMode;
-		purchase_count = data.PurchaseCount;
+		_data = Helper.Data.ReadSaveData<ModData>(SAVE_CONFIG_KEY);
 
 		Monitor.Log("Mod Data Loaded", LogLevel.Debug);
 	}
