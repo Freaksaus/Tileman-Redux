@@ -2,7 +2,7 @@
 
 namespace TilemanRedux;
 
-class MapData
+internal sealed class MapData
 {
 	public List<KaiTile> AllKaiTilesList { get; set; } = new();
 }

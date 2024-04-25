@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace TilemanRedux;
 
-public class ModEntry : Mod
+public sealed class ModEntry : Mod
 {
 	private const string SAVE_CONFIG_KEY = "tilemanredux-config";
 

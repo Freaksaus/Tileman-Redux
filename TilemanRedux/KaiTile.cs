@@ -4,7 +4,7 @@ using StardewValley;
 
 namespace TilemanRedux;
 
-public class KaiTile
+internal sealed class KaiTile
 {
 	public int Width { get; } = Game1.tileSize;
 	public int Height { get; } = Game1.tileSize;
