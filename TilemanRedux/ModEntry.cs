@@ -42,6 +42,7 @@ public sealed class ModEntry : Mod
 
 		helper.Events.GameLoop.GameLaunched += GameLaunched;
 		helper.Events.GameLoop.SaveCreated += SaveCreated;
+		helper.Events.GameLoop.Saving += Saving;
 		helper.Events.GameLoop.Saved += this.SaveModData;
 		helper.Events.GameLoop.SaveLoaded += this.LoadModData;
 		helper.Events.GameLoop.DayStarted += this.DayStartedUpdate;
@@ -50,6 +51,11 @@ public sealed class ModEntry : Mod
 		tileTexture = helper.ModContent.Load<Texture2D>("assets/tile.png");
 		tileTexture2 = helper.ModContent.Load<Texture2D>("assets/tile_2.png");
 		tileTexture3 = helper.ModContent.Load<Texture2D>("assets/tile_3.png");
+	}
+
+	private void Saving(object sender, SavingEventArgs e)
+	{
+		Helper.Data.WriteSaveData(SAVE_CONFIG_KEY, _data);
 	}
 
 	private void SaveCreated(object sender, SaveCreatedEventArgs e)
@@ -638,8 +644,6 @@ public sealed class ModEntry : Mod
 			SaveLocationTiles(Game1.getLocationFromName(entry.Key));
 		}
 		tileDict.Clear();
-
-		Helper.Data.WriteSaveData<ModData>(SAVE_CONFIG_KEY, _data);
 	}
 
 	private void LoadModData(object sender, SaveLoadedEventArgs e)
