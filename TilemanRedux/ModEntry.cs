@@ -16,7 +16,7 @@ public sealed class ModEntry : Mod
 	private bool tool_button_pushed = false;
 	private bool location_changed = false;
 
-	private float dynamic_tile_price;
+	private float _currentTilePrice = 0;
 
 	private int locationDelay = 0;
 
@@ -271,13 +271,13 @@ public sealed class ModEntry : Mod
 						{
 							texture = tileTexture2;
 
-							if (Game1.player.Money < (int)Math.Floor(dynamic_tile_price))
+							if (Game1.player.Money < (int)Math.Floor(_currentTilePrice))
 							{
 								stringColor = Color.Red;
 								texture = tileTexture3;
 							}
 
-							e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(dynamic_tile_price)}",
+							e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(_currentTilePrice)}",
 								new Vector2(Game1.getMousePosition().X, Game1.getMousePosition().Y - Game1.tileSize), stringColor);
 						}
 					}
@@ -288,13 +288,13 @@ public sealed class ModEntry : Mod
 						{
 							texture = tileTexture2;
 
-							if (Game1.player.Money < (int)Math.Floor(dynamic_tile_price))
+							if (Game1.player.Money < (int)Math.Floor(_currentTilePrice))
 							{
 								texture = tileTexture3;
 								stringColor = Color.Red;
 							}
 
-							e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(dynamic_tile_price)}",
+							e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(_currentTilePrice)}",
 								new Vector2((t.X) * 64 - Game1.viewport.X, (t.Y) * 64 - 64 - Game1.viewport.Y), stringColor);
 						}
 					}
@@ -318,22 +318,22 @@ public sealed class ModEntry : Mod
 		{
 			case 0:
 				//Slowly increase tile cost over time // Change 0 for initial buffer
-				if (_data.PurchaseCount > 0) dynamic_tile_price += _data.TilePriceRaise;
+				if (_data.PurchaseCount > 0) _currentTilePrice += _data.TilePriceRaise;
 				break;
 
 			case 1:
 				//Increase tile cost through milestones
-				if (_data.PurchaseCount > 1) dynamic_tile_price = _data.TilePrice * 2;
-				if (_data.PurchaseCount > 10) dynamic_tile_price = _data.TilePrice * 4;
-				if (_data.PurchaseCount > 100) dynamic_tile_price = _data.TilePrice * 8;
-				if (_data.PurchaseCount > 1000) dynamic_tile_price = _data.TilePrice * 16;
-				if (_data.PurchaseCount > 10000) dynamic_tile_price = _data.TilePrice * 32;
-				if (_data.PurchaseCount > 100000) dynamic_tile_price = _data.TilePrice * 64;
+				if (_data.PurchaseCount > 1) _currentTilePrice = _data.TilePrice * 2;
+				if (_data.PurchaseCount > 10) _currentTilePrice = _data.TilePrice * 4;
+				if (_data.PurchaseCount > 100) _currentTilePrice = _data.TilePrice * 8;
+				if (_data.PurchaseCount > 1000) _currentTilePrice = _data.TilePrice * 16;
+				if (_data.PurchaseCount > 10000) _currentTilePrice = _data.TilePrice * 32;
+				if (_data.PurchaseCount > 100000) _currentTilePrice = _data.TilePrice * 64;
 
 				break;
 			case 2:
 				//Increment tile price with each one purchased
-				dynamic_tile_price = _data.PurchaseCount;
+				_currentTilePrice = _data.PurchaseCount;
 				break;
 		}
 	}
@@ -365,7 +365,7 @@ public sealed class ModEntry : Mod
 
 	private void PurchaseTileCheck(KaiTile thisTile)
 	{
-		int floor_price = (int)Math.Floor(dynamic_tile_price);
+		int floor_price = (int)Math.Floor(_currentTilePrice);
 
 		if (Game1.player.Money < floor_price)
 		{
@@ -576,7 +576,7 @@ public sealed class ModEntry : Mod
 			{
 				if (collisionTick > 120)
 				{
-					Game1.player.Money += (int)dynamic_tile_price;
+					Game1.player.Money += (int)_currentTilePrice;
 					collisionTick = 0;
 					PurchaseTileCheck(tile);
 				}
