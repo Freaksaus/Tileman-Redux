@@ -560,6 +560,7 @@ public sealed class ModEntry : Mod
 	private void ResetValues()
 	{
 		_data = new();
+		_currentTilePrice = 0;
 		ThisLocationTiles.Clear();
 
 		tileDict.Clear();
@@ -652,6 +653,8 @@ public sealed class ModEntry : Mod
 
 		_data = Helper.Data.ReadSaveData<ModData>(SAVE_CONFIG_KEY)
 			?? new();
+
+		GetTilePrice();
 
 		Monitor.Log("Mod Data Loaded", LogLevel.Debug);
 	}
