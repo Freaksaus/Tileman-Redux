@@ -650,7 +650,8 @@ public sealed class ModEntry : Mod
 	{
 		ConvertModConfigToSaveConfig();
 
-		_data = Helper.Data.ReadSaveData<ModData>(SAVE_CONFIG_KEY);
+		_data = Helper.Data.ReadSaveData<ModData>(SAVE_CONFIG_KEY)
+			?? new();
 
 		Monitor.Log("Mod Data Loaded", LogLevel.Debug);
 	}
