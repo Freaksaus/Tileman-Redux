@@ -198,16 +198,7 @@ public sealed class ModEntry : Mod
 
 		if (_configuration.ToggleOverlayModeKey.IsDown())
 		{
-			_data.OverlayMode++;
-			var mode = "Mouse";
-			if (_data.OverlayMode > 1)
-			{
-				mode = "Controller";
-				_data.OverlayMode = 0;
-			}
-
-			Monitor.Log($"Tileman Overlay Mode set to:{mode}", LogLevel.Debug);
-			Game1.playSound("coin", 1200);
+			ChangeOverlayMode();
 		}
 
 		if (_configuration.ChangeDifficultyKey.IsDown())
@@ -710,9 +701,31 @@ public sealed class ModEntry : Mod
 		}
 	}
 
-	private void PlayPurchaseSound()
+	private static void PlayPurchaseSound()
 	{
 		Game1.playSound("purchase", 700 + (100 * new Random().Next(0, 7)));
+	}
+
+	private void ChangeOverlayMode()
+	{
+		switch ((OverlayMode)_data.OverlayMode)
+		{
+			case OverlayMode.BuyWithTool:
+				_data.OverlayMode = (int)OverlayMode.BuyWithCursor;
+				break;
+			case OverlayMode.BuyWithCursor:
+				_data.OverlayMode = (int)OverlayMode.NoBuying;
+				break;
+			case OverlayMode.NoBuying:
+				_data.OverlayMode = (int)OverlayMode.BuyWithTool;
+				break;
+			default:
+				_data.OverlayMode = (int)OverlayMode.BuyWithTool;
+				break;
+		}
+
+		Monitor.Log($"Changed overlay mode to {(OverlayMode)_data.OverlayMode}", LogLevel.Info);
+		Game1.playSound("coin", 1200);
 	}
 
 	private void ShowLocationBuyoutMenu()
