@@ -355,7 +355,7 @@ public sealed class ModEntry : Mod
 			{
 				if (Game1.currentCursorTile == new Vector2(t.X, t.Y))
 				{
-					TryAndPurchaseTile(t);
+					TryAndPurchaseTile(t, true);
 				}
 			}
 			//Keyboard or Controller
@@ -363,19 +363,23 @@ public sealed class ModEntry : Mod
 			{
 				if (Game1.player.nextPositionTile().X == t.X && Game1.player.nextPositionTile().Y == t.Y)
 				{
-					TryAndPurchaseTile(t);
+					TryAndPurchaseTile(t, true);
 				}
 			}
 		}
 	}
 
-	private void TryAndPurchaseTile(KaiTile thisTile)
+	private void TryAndPurchaseTile(KaiTile thisTile, bool playSound)
 	{
 		int floor_price = (int)Math.Floor(_currentTilePrice);
 
 		if (Game1.player.Money < floor_price)
 		{
-			Game1.playSound("grunt", 700 + (100 * new Random().Next(0, 7)));
+			if (playSound)
+			{
+				Game1.playSound("grunt", 700 + (100 * new Random().Next(0, 7)));
+			}
+
 			return;
 		}
 
@@ -385,7 +389,10 @@ public sealed class ModEntry : Mod
 		_currentTilePrice = GetNewTilePrice(_data.DifficultyMode, _currentTilePrice, _data.TilePrice, _data.TilePriceRaise, _data.PurchaseCount);
 
 
-		Game1.playSound("purchase", 700 + (100 * new Random().Next(0, 7)));
+		if (playSound)
+		{
+			PlayPurchaseSound();
+		}
 
 		var gameLocation = Game1.currentLocation;
 
@@ -585,7 +592,7 @@ public sealed class ModEntry : Mod
 				{
 					Game1.player.Money += (int)_currentTilePrice;
 					collisionTick = 0;
-					TryAndPurchaseTile(tile);
+					TryAndPurchaseTile(tile, true);
 				}
 
 				var xDist = playerBox.Right - tileBox.Left;
@@ -635,7 +642,7 @@ public sealed class ModEntry : Mod
 				{
 					Game1.player.Money += (int)_data.TilePrice;
 					collisionTick = 0;
-					TryAndPurchaseTile(tile);
+					TryAndPurchaseTile(tile, true);
 				}
 
 				Game1.player.Position = Game1.player.lastPosition;
