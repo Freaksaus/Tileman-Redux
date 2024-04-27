@@ -11,6 +11,9 @@ namespace TilemanRedux;
 public sealed class ModEntry : Mod
 {
 	private const string SAVE_CONFIG_KEY = "tilemanredux-config";
+	private const string BUY_LOCATION_DIALOGUE_KEY = "tilemanredux-buy-location";
+	private const string BUY_LOCATION_YES_KEY = "tilemanredux-buy-location-yes";
+	private const string BUY_LOCATION_NO_KEY = "tilemanredux-buy-location-no";
 	private const string TEMPORARY_LOCATION_NAME = "Temp";
 
 	private bool tool_button_pushed = false;
@@ -107,6 +110,13 @@ public sealed class ModEntry : Mod
 			name: () => "Change difficulty",
 			getValue: () => _configuration.ChangeDifficultyKey,
 			setValue: value => _configuration.ChangeDifficultyKey = value
+		);
+
+		configurationMenu.AddKeybindList(
+			mod: ModManifest,
+			name: () => "`Buy all tiles in current location",
+			getValue: () => _configuration.BuyLocationTilesKey,
+			setValue: value => _configuration.BuyLocationTilesKey = value
 		);
 
 		configurationMenu.AddSectionTitle(
@@ -209,6 +219,11 @@ public sealed class ModEntry : Mod
 			}
 
 			Game1.addHUDMessage(new($"Changed difficulty to {_data.DifficultyMode}"));
+		}
+
+		if (_configuration.BuyLocationTilesKey.IsDown())
+		{
+			ShowLocationBuyoutMenu();
 		}
 
 		if (!_data.ToggleOverlay)
@@ -693,5 +708,77 @@ public sealed class ModEntry : Mod
 			System.IO.File.Delete(saveConfigPath);
 			Monitor.Log("Converted old config file to save data", LogLevel.Debug);
 		}
+	}
+
+	private void PlayPurchaseSound()
+	{
+		Game1.playSound("purchase", 700 + (100 * new Random().Next(0, 7)));
+	}
+
+	private void ShowLocationBuyoutMenu()
+	{
+		var locationName = Game1.currentLocation.Name;
+		var tilesToBuy = tileDict[locationName].Count;
+
+		if (tilesToBuy == 0)
+		{
+			return;
+		}
+
+		(float tilePrice, float totalPrice) = GetPriceForTiles(tilesToBuy);
+
+		Game1.currentLocation.afterQuestion = (Farmer farmer, string whichAnswer) =>
+		{
+			switch (whichAnswer)
+			{
+				case BUY_LOCATION_YES_KEY:
+					if (totalPrice > farmer.Money)
+					{
+						Game1.drawObjectDialogue($"You don't have enough money to buy all the tiles");
+						return;
+					}
+
+					BuyoutCurrentLocation();
+
+					break;
+				case BUY_LOCATION_NO_KEY:
+					break;
+			}
+		};
+
+		Game1.currentLocation.createQuestionDialogue(
+			$"Are you sure want to buy all the tiles in this location for {totalPrice}?\nThe new tile price will be {tilePrice}",
+			new Response[]
+			{
+				new(BUY_LOCATION_YES_KEY, "Yes"),
+				new(BUY_LOCATION_NO_KEY, "No"),
+			},
+			BUY_LOCATION_DIALOGUE_KEY);
+	}
+
+	private (float tilePrice, float totalPrice) GetPriceForTiles(int tileCount)
+	{
+		float totalPrice = 0f;
+		float tilePrice = 0f;
+
+		var purchaseCount = _data.PurchaseCount;
+		for (int i = 0; i < tileCount; i++)
+		{
+			tilePrice = GetNewTilePrice(_data.DifficultyMode, _currentTilePrice, _data.TilePrice, _data.TilePriceRaise, purchaseCount);
+			totalPrice += tilePrice;
+			purchaseCount++;
+		}
+
+		return (tilePrice, totalPrice);
+	}
+
+	private void BuyoutCurrentLocation()
+	{
+		while (ThisLocationTiles.Count > 0)
+		{
+			TryAndPurchaseTile(ThisLocationTiles[0], false);
+		}
+
+		PlayPurchaseSound();
 	}
 }

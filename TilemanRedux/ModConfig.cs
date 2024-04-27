@@ -23,6 +23,11 @@ internal sealed class ModConfig
 	public KeybindList ChangeDifficultyKey { get; set; }
 
 	/// <summary>
+	/// Keybinding used to buy all tiles of the current location
+	/// </summary>
+	public KeybindList BuyLocationTilesKey { get; set; }
+
+	/// <summary>
 	/// Default tile price, this gets used as the base price upon which the prices get raised based on the difficulty
 	/// </summary>
 	public int TilePrice { get; set; } = 1;
