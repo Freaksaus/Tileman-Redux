@@ -355,7 +355,7 @@ public sealed class ModEntry : Mod
 			{
 				if (Game1.currentCursorTile == new Vector2(t.X, t.Y))
 				{
-					PurchaseTileCheck(t);
+					TryAndPurchaseTile(t);
 				}
 			}
 			//Keyboard or Controller
@@ -363,13 +363,13 @@ public sealed class ModEntry : Mod
 			{
 				if (Game1.player.nextPositionTile().X == t.X && Game1.player.nextPositionTile().Y == t.Y)
 				{
-					PurchaseTileCheck(t);
+					TryAndPurchaseTile(t);
 				}
 			}
 		}
 	}
 
-	private void PurchaseTileCheck(KaiTile thisTile)
+	private void TryAndPurchaseTile(KaiTile thisTile)
 	{
 		int floor_price = (int)Math.Floor(_currentTilePrice);
 
@@ -585,7 +585,7 @@ public sealed class ModEntry : Mod
 				{
 					Game1.player.Money += (int)_currentTilePrice;
 					collisionTick = 0;
-					PurchaseTileCheck(tile);
+					TryAndPurchaseTile(tile);
 				}
 
 				var xDist = playerBox.Right - tileBox.Left;
@@ -635,7 +635,7 @@ public sealed class ModEntry : Mod
 				{
 					Game1.player.Money += (int)_data.TilePrice;
 					collisionTick = 0;
-					PurchaseTileCheck(tile);
+					TryAndPurchaseTile(tile);
 				}
 
 				Game1.player.Position = Game1.player.lastPosition;
