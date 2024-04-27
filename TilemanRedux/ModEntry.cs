@@ -312,29 +312,35 @@ public sealed class ModEntry : Mod
 		if (tool_button_pushed) PurchaseTilePreCheck();
 	}
 
-	private void GetTilePrice()
+	private static float GetNewTilePrice(
+		int difficultyMode,
+		float currentTilePrice,
+		float startingTilePrice,
+		float tilePriceRaise,
+		int tilesBought)
 	{
-		switch (_data.DifficultyMode)
+		switch (difficultyMode)
 		{
 			case 0:
-				//Slowly increase tile cost over time // Change 0 for initial buffer
-				if (_data.PurchaseCount > 0) _currentTilePrice += _data.TilePriceRaise;
-				break;
+				if (tilesBought > 0)
+				{
+					currentTilePrice += tilePriceRaise;
+				}
+				return currentTilePrice;
 
 			case 1:
-				//Increase tile cost through milestones
-				if (_data.PurchaseCount > 1) _currentTilePrice = _data.TilePrice * 2;
-				if (_data.PurchaseCount > 10) _currentTilePrice = _data.TilePrice * 4;
-				if (_data.PurchaseCount > 100) _currentTilePrice = _data.TilePrice * 8;
-				if (_data.PurchaseCount > 1000) _currentTilePrice = _data.TilePrice * 16;
-				if (_data.PurchaseCount > 10000) _currentTilePrice = _data.TilePrice * 32;
-				if (_data.PurchaseCount > 100000) _currentTilePrice = _data.TilePrice * 64;
+				if (tilesBought > 100000) return startingTilePrice * 64;
+				if (tilesBought > 10000) return startingTilePrice * 32;
+				if (tilesBought > 1000) return startingTilePrice * 16;
+				if (tilesBought > 100) return startingTilePrice * 8;
+				if (tilesBought > 10) return startingTilePrice * 4;
+				if (tilesBought > 1) return startingTilePrice * 2;
 
-				break;
+				return currentTilePrice;
 			case 2:
-				//Increment tile price with each one purchased
-				_currentTilePrice = _data.PurchaseCount;
-				break;
+				return tilesBought;
+			default:
+				return currentTilePrice;
 		}
 	}
 
@@ -375,9 +381,9 @@ public sealed class ModEntry : Mod
 
 		Game1.player.Money -= floor_price;
 
-		GetTilePrice();
-
 		_data.PurchaseCount++;
+		_currentTilePrice = GetNewTilePrice(_data.DifficultyMode, _currentTilePrice, _data.TilePrice, _data.TilePriceRaise, _data.PurchaseCount);
+
 
 		Game1.playSound("purchase", 700 + (100 * new Random().Next(0, 7)));
 
@@ -654,7 +660,7 @@ public sealed class ModEntry : Mod
 		_data = Helper.Data.ReadSaveData<ModData>(SAVE_CONFIG_KEY)
 			?? new();
 
-		GetTilePrice();
+		_currentTilePrice = GetNewTilePrice(_data.DifficultyMode, _currentTilePrice, _data.TilePrice, _data.TilePriceRaise, _data.PurchaseCount);
 
 		Monitor.Log("Mod Data Loaded", LogLevel.Debug);
 	}
