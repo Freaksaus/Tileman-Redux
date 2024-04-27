@@ -5,6 +5,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TilemanRedux;
 
@@ -31,6 +32,7 @@ public sealed class ModEntry : Mod
 	Texture2D tileTexture = new(Game1.game1.GraphicsDevice, Game1.tileSize, Game1.tileSize);
 	Texture2D tileTexture2 = new(Game1.game1.GraphicsDevice, Game1.tileSize, Game1.tileSize);
 	Texture2D tileTexture3 = new(Game1.game1.GraphicsDevice, Game1.tileSize, Game1.tileSize);
+	Texture2D noBuyingTileTexture = new(Game1.game1.GraphicsDevice, Game1.tileSize, Game1.tileSize);
 
 	private ModConfig _configuration;
 	private ModData _data;
@@ -54,6 +56,7 @@ public sealed class ModEntry : Mod
 		tileTexture = helper.ModContent.Load<Texture2D>("assets/tile.png");
 		tileTexture2 = helper.ModContent.Load<Texture2D>("assets/tile_2.png");
 		tileTexture3 = helper.ModContent.Load<Texture2D>("assets/tile_3.png");
+		noBuyingTileTexture = helper.ModContent.Load<Texture2D>("assets/no_buying_tile.png");
 	}
 
 	private void Saving(object sender, SavingEventArgs e)
@@ -270,8 +273,7 @@ public sealed class ModEntry : Mod
 					var texture = tileTexture;
 					var stringColor = Color.Gold;
 
-					//Cursor
-					if (_data.OverlayMode == 1)
+					if (_data.OverlayMode == OverlayMode.BUY_WITH_CURSOR)
 					{
 						if (Game1.currentCursorTile == new Vector2(t.X, t.Y))
 						{
@@ -287,8 +289,7 @@ public sealed class ModEntry : Mod
 								new Vector2(Game1.getMousePosition().X, Game1.getMousePosition().Y - Game1.tileSize), stringColor);
 						}
 					}
-					//Keyboard or Controller
-					else
+					else if (_data.OverlayMode == OverlayMode.BUY_WITH_TOOL)
 					{
 						if (Game1.player.nextPositionTile().X == t.X && Game1.player.nextPositionTile().Y == t.Y)
 						{
@@ -304,6 +305,11 @@ public sealed class ModEntry : Mod
 								new Vector2((t.X) * 64 - Game1.viewport.X, (t.Y) * 64 - 64 - Game1.viewport.Y), stringColor);
 						}
 					}
+					else if (_data.OverlayMode == OverlayMode.NO_BUYING)
+					{
+						texture = noBuyingTileTexture;
+					}
+
 					t.DrawTile(texture, e.SpriteBatch);
 				}
 
@@ -356,16 +362,14 @@ public sealed class ModEntry : Mod
 		{
 			KaiTile t = ThisLocationTiles[i];
 
-			//Cursor 
-			if (_data.OverlayMode == 1)
+			if (_data.OverlayMode == OverlayMode.BUY_WITH_CURSOR)
 			{
 				if (Game1.currentCursorTile == new Vector2(t.X, t.Y))
 				{
 					TryAndPurchaseTile(t, true);
 				}
 			}
-			//Keyboard or Controller
-			else
+			else if (_data.OverlayMode == OverlayMode.BUY_WITH_TOOL)
 			{
 				if (Game1.player.nextPositionTile().X == t.X && Game1.player.nextPositionTile().Y == t.Y)
 				{
@@ -552,6 +556,7 @@ public sealed class ModEntry : Mod
 		}
 
 		ThisLocationTiles = tileDict[locationName];
+
 		if (ThisLocationTiles.Count == 0)
 		{
 			Monitor.Log($"All tiles for {locationName} have been bought?", LogLevel.Debug);
@@ -594,7 +599,7 @@ public sealed class ModEntry : Mod
 
 			if (playerBox.Intersects(tileBox))
 			{
-				if (collisionTick > 120)
+				if (_data.OverlayMode != OverlayMode.NO_BUYING && collisionTick > 120)
 				{
 					Game1.player.Money += (int)_currentTilePrice;
 					collisionTick = 0;
@@ -644,7 +649,7 @@ public sealed class ModEntry : Mod
 
 			if (playerBox.Center == tileBox.Center || playerBox.Intersects(tileBox) && locationDelay > 0)
 			{
-				if (collisionTick > 120)
+				if (_data.OverlayMode != OverlayMode.NO_BUYING && collisionTick > 120)
 				{
 					Game1.player.Money += (int)_data.TilePrice;
 					collisionTick = 0;
@@ -708,23 +713,15 @@ public sealed class ModEntry : Mod
 
 	private void ChangeOverlayMode()
 	{
-		switch ((OverlayMode)_data.OverlayMode)
+		_data.OverlayMode = _data.OverlayMode switch
 		{
-			case OverlayMode.BuyWithTool:
-				_data.OverlayMode = (int)OverlayMode.BuyWithCursor;
-				break;
-			case OverlayMode.BuyWithCursor:
-				_data.OverlayMode = (int)OverlayMode.NoBuying;
-				break;
-			case OverlayMode.NoBuying:
-				_data.OverlayMode = (int)OverlayMode.BuyWithTool;
-				break;
-			default:
-				_data.OverlayMode = (int)OverlayMode.BuyWithTool;
-				break;
-		}
+			OverlayMode.BUY_WITH_TOOL => OverlayMode.BUY_WITH_CURSOR,
+			OverlayMode.BUY_WITH_CURSOR => OverlayMode.NO_BUYING,
+			OverlayMode.NO_BUYING => OverlayMode.BUY_WITH_TOOL,
+			_ => OverlayMode.BUY_WITH_TOOL,
+		};
 
-		Monitor.Log($"Changed overlay mode to {(OverlayMode)_data.OverlayMode}", LogLevel.Info);
+		Monitor.Log($"Changed overlay mode to {_data.OverlayMode}", LogLevel.Info);
 		Game1.playSound("coin", 1200);
 	}
 
