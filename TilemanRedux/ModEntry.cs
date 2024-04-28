@@ -261,6 +261,11 @@ public sealed class ModEntry : Mod
 			return;
 		}
 
+		if (Game1.farmEvent is not null)
+		{
+			return;
+		}
+
 		GroupIfLocationChange();
 
 		for (int i = 0; i < ThisLocationTiles.Count; i++)
