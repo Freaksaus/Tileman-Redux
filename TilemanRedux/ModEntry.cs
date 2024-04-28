@@ -5,7 +5,6 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace TilemanRedux;
 
@@ -268,10 +267,11 @@ public sealed class ModEntry : Mod
 
 		GroupIfLocationChange();
 
+		var locationName = GetLocationName(Game1.currentLocation);
 		for (int i = 0; i < ThisLocationTiles.Count; i++)
 		{
 			KaiTile t = ThisLocationTiles[i];
-			if (t.Location == Game1.currentLocation.Name || Game1.currentLocation.Name == TEMPORARY_LOCATION_NAME)
+			if (t.Location == locationName)
 			{
 				if (_data.ToggleOverlay)
 				{
@@ -424,16 +424,9 @@ public sealed class ModEntry : Mod
 		ThisLocationTiles.Remove(thisTile);
 	}
 
-	private void PlaceInTempArea(GameLocation gameLocation)
-	{
-		Monitor.Log($"Placing Tiles in Temporary Area: {Game1.whereIsTodaysFest}", LogLevel.Debug);
-
-		var tiles = GetTilesForLocation(gameLocation);
-		ThisLocationTiles = tiles;
-	}
-
 	private static List<KaiTile> GetTilesForLocation(GameLocation mapLocation)
 	{
+		var locationName = GetLocationName(mapLocation);
 		int mapWidth = mapLocation.map.Layers[0].LayerWidth;
 		int mapHeight = mapLocation.map.Layers[0].LayerHeight;
 
@@ -453,7 +446,7 @@ public sealed class ModEntry : Mod
 					&& mapLocation.isCharacterAtTile(vector) == null
 					&& new Vector2(Game1.player.position.X, Game1.player.position.Y) != vector)
 				{
-					tiles.Add(new(i, j, mapLocation.Name));
+					tiles.Add(new(i, j, locationName));
 				}
 			}
 		}
@@ -469,41 +462,18 @@ public sealed class ModEntry : Mod
 			{
 				locationDelay = 35;
 				location_changed = true;
-
-				if (Game1.currentLocation.Name == TEMPORARY_LOCATION_NAME)
-				{
-					SaveLocationTiles(Game1.currentLocation);
-				}
 			}
 		}
 		else if (location_changed)
 		{
 			if (locationDelay <= 0)
 			{
-				//First encounter with specific Temp area
-				if (Game1.currentLocation.Name == TEMPORARY_LOCATION_NAME)
-				{
-					if (Helper.Data.ReadJsonFile<MapData>($"jsons/" +
-						$"{Constants.SaveFolderName}/" +
-						$"{Game1.currentLocation.Name + Game1.whereIsTodaysFest}.json") == null)
-					{
-						PlaceInTempArea(Game1.currentLocation);
-					}
-					else
-					{
-						Monitor.Log($"Grouping Tiles At: {Game1.currentLocation.NameOrUniqueName}", LogLevel.Debug);
-						GetLocationTiles(Game1.currentLocation);
-					}
+				var locationName = GetLocationName(Game1.currentLocation);
 
-					location_changed = false;
-				}
-				else
-				{
-					Monitor.Log($"Grouping Tiles At: {Game1.currentLocation.NameOrUniqueName}", LogLevel.Debug);
-					GetLocationTiles(Game1.currentLocation);
+				Monitor.Log($"Grouping Tiles At: {locationName}", LogLevel.Debug);
+				GetLocationTiles(Game1.currentLocation);
 
-					location_changed = false;
-				}
+				location_changed = false;
 			}
 
 			locationDelay--;
@@ -534,16 +504,10 @@ public sealed class ModEntry : Mod
 		Helper.Data.WriteJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{locationName}.json", tileData);
 	}
 
-	private void GetLocationTiles(GameLocation gameLocation)
+	private void GetLocationTiles(GameLocation location)
 	{
-		Monitor.Log($"Get location tiles: {gameLocation.Name}", LogLevel.Debug);
-
-		var locationName = gameLocation.Name;
-
-		if (locationName == TEMPORARY_LOCATION_NAME)
-		{
-			locationName += Game1.whereIsTodaysFest;
-		}
+		var locationName = GetLocationName(location);
+		Monitor.Log($"Get location tiles: {locationName}", LogLevel.Debug);
 
 		if (!tileDict.ContainsKey(locationName))
 		{
@@ -556,8 +520,8 @@ public sealed class ModEntry : Mod
 
 		if (!tileDict.ContainsKey(locationName))
 		{
-			var tiles = GetTilesForLocation(gameLocation);
-			tileDict.Add(gameLocation.Name, tiles);
+			var tiles = GetTilesForLocation(location);
+			tileDict.Add(locationName, tiles);
 		}
 
 		ThisLocationTiles = tileDict[locationName];
@@ -567,7 +531,7 @@ public sealed class ModEntry : Mod
 			Monitor.Log($"All tiles for {locationName} have been bought?", LogLevel.Debug);
 		}
 
-		if (gameLocation.Name != TEMPORARY_LOCATION_NAME)
+		if (location.Name != TEMPORARY_LOCATION_NAME)
 		{
 			for (int i = 0; i < ThisLocationTiles.Count; i++)
 			{
@@ -575,12 +539,12 @@ public sealed class ModEntry : Mod
 
 				if (!_data.AllowPlayerPlacement)
 				{
-					gameLocation.removeTileProperty(t.X, t.Y, "Back", "Diggable");
+					location.removeTileProperty(t.X, t.Y, "Back", "Diggable");
 
-					gameLocation.setTileProperty(t.X, t.Y, "Back", "Buildable", "false");
-					gameLocation.setTileProperty(t.X, t.Y, "Back", "NoFurniture", "true");
-					gameLocation.setTileProperty(t.X, t.Y, "Back", "NoSprinklers", "");
-					gameLocation.setTileProperty(t.X, t.Y, "Back", "Placeable", "");
+					location.setTileProperty(t.X, t.Y, "Back", "Buildable", "false");
+					location.setTileProperty(t.X, t.Y, "Back", "NoFurniture", "true");
+					location.setTileProperty(t.X, t.Y, "Back", "NoSprinklers", "");
+					location.setTileProperty(t.X, t.Y, "Back", "Placeable", "");
 				}
 			}
 		}
@@ -732,7 +696,7 @@ public sealed class ModEntry : Mod
 
 	private void ShowLocationBuyoutMenu()
 	{
-		var locationName = Game1.currentLocation.Name;
+		var locationName = GetLocationName(Game1.currentLocation);
 		var tilesToBuy = tileDict[locationName].Count;
 
 		if (tilesToBuy == 0)
@@ -795,5 +759,15 @@ public sealed class ModEntry : Mod
 		}
 
 		PlayPurchaseSound();
+	}
+
+	private static string GetLocationName(GameLocation location)
+	{
+		if (location.Name == TEMPORARY_LOCATION_NAME)
+		{
+			return Game1.whereIsTodaysFest;
+		}
+
+		return location.Name;
 	}
 }
