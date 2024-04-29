@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
 
@@ -18,6 +19,7 @@ public sealed class ModEntry : Mod
 
 	private bool tool_button_pushed = false;
 	private bool location_changed = false;
+	private bool isFishing = false;
 
 	private float _currentTilePrice = 0;
 
@@ -42,7 +44,9 @@ public sealed class ModEntry : Mod
 
 		helper.Events.Input.ButtonReleased += this.OnButtonReleased;
 		helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+
 		helper.Events.Display.RenderedWorld += this.DrawUpdate;
+		helper.Events.Display.MenuChanged += MenuChanged;
 
 		helper.Events.GameLoop.GameLaunched += GameLaunched;
 		helper.Events.GameLoop.SaveCreated += SaveCreated;
@@ -56,6 +60,18 @@ public sealed class ModEntry : Mod
 		tileTexture2 = helper.ModContent.Load<Texture2D>("assets/tile_2.png");
 		tileTexture3 = helper.ModContent.Load<Texture2D>("assets/tile_3.png");
 		noBuyingTileTexture = helper.ModContent.Load<Texture2D>("assets/no_buying_tile.png");
+	}
+
+	private void MenuChanged(object sender, MenuChangedEventArgs e)
+	{
+		if (e.NewMenu is BobberBar)
+		{
+			isFishing = true;
+		}
+		else if (e.OldMenu is BobberBar)
+		{
+			isFishing = false;
+		}
 	}
 
 	private void Saving(object sender, SavingEventArgs e)
@@ -249,18 +265,7 @@ public sealed class ModEntry : Mod
 
 	private void DrawUpdate(object sender, RenderedWorldEventArgs e)
 	{
-		if (!Context.IsWorldReady)
-		{
-			return;
-		}
-
-		//Makes sure to not draw while a cutscene is happening
-		if (Game1.CurrentEvent != null && !Game1.CurrentEvent.playerControlSequence)
-		{
-			return;
-		}
-
-		if (Game1.farmEvent is not null)
+		if (!ShoulDrawTiles())
 		{
 			return;
 		}
@@ -327,6 +332,31 @@ public sealed class ModEntry : Mod
 		}
 
 		if (tool_button_pushed) PurchaseTilePreCheck();
+	}
+
+	private bool ShoulDrawTiles()
+	{
+		if (!Context.IsWorldReady)
+		{
+			return false;
+		}
+
+		if (Game1.CurrentEvent != null && !Game1.CurrentEvent.playerControlSequence)
+		{
+			return false;
+		}
+
+		if (Game1.farmEvent is not null)
+		{
+			return false;
+		}
+
+		if (isFishing)
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	private static float GetNewTilePrice(
