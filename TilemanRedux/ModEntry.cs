@@ -111,47 +111,47 @@ public sealed class ModEntry : Mod
 
 		configurationMenu.AddKeybindList(
 			mod: ModManifest,
-			name: () => "Toggle overlay",
+			name: () => Helper.Translation.Get("toggle-overlay"),
 			getValue: () => _configuration.ToggleOverlayKey,
 			setValue: value => _configuration.ToggleOverlayKey = value
 		);
 
 		configurationMenu.AddKeybindList(
 			mod: ModManifest,
-			name: () => "Toggle overlay mode",
+			name: () => Helper.Translation.Get("toggle-overlay-mode"),
 			getValue: () => _configuration.ToggleOverlayModeKey,
 			setValue: value => _configuration.ToggleOverlayModeKey = value
 		);
 
 		configurationMenu.AddKeybindList(
 			mod: ModManifest,
-			name: () => "Change difficulty",
+			name: () => Helper.Translation.Get("toggle-overlay-mode"),
 			getValue: () => _configuration.ChangeDifficultyKey,
 			setValue: value => _configuration.ChangeDifficultyKey = value
 		);
 
 		configurationMenu.AddKeybindList(
 			mod: ModManifest,
-			name: () => "`Buy all tiles in current location",
+			name: () => Helper.Translation.Get("buy-all-tiles"),
 			getValue: () => _configuration.BuyLocationTilesKey,
 			setValue: value => _configuration.BuyLocationTilesKey = value
 		);
 
 		configurationMenu.AddSectionTitle(
 			mod: ModManifest,
-			text: () => "Default settings",
-			tooltip: () => "The default settings used for any new save file.\nThis will not impact your current save!"
+			text: () => Helper.Translation.Get("default-settings"),
+			tooltip: () => Helper.Translation.Get("default-settings-tooltip")
 		);
 
 		configurationMenu.AddParagraph(
 			mod: ModManifest,
-			text: () => "These settings will be used for any new save file\nThis will not impact your current save!"
+			text: () => Helper.Translation.Get("default-settings-warning")
 		);
 
 		configurationMenu.AddNumberOption(
 			mod: ModManifest,
-			name: () => "Difficulty",
-			tooltip: () => "The default difficulty used for new save, 1 is the easiest, 3 is the hardest",
+			name: () => Helper.Translation.Get("difficulty"),
+			tooltip: () => Helper.Translation.Get("difficulty-tooltip"),
 			getValue: () => _configuration.DifficultyMode,
 			setValue: value => _configuration.DifficultyMode = value,
 			min: 0,
@@ -160,13 +160,13 @@ public sealed class ModEntry : Mod
 
 		configurationMenu.AddParagraph(
 			mod: ModManifest,
-			text: () => "Tile pricing is calculated differently based on the difficulty settings.\n- For difficulty 0 the tile price increases based on the tile price inrease setting\n- For difficulty 1 the tile price doubles at set intervals.These are 1 - 10, 10 - 100, 100 - 1000 etc.\n- For difficulty 2 the tile price increases with 1 for every tile purchased"
+			text: () => Helper.Translation.Get("tile-pricing-explanation")
 		);
 
 		configurationMenu.AddNumberOption(
 			mod: ModManifest,
-			name: () => "Tile price",
-			tooltip: () => "The default tile price upon which all tiles are calculated",
+			name: () => Helper.Translation.Get("tile-price"),
+			tooltip: () => Helper.Translation.Get("tile-price-tooltip"),
 			getValue: () => _configuration.TilePrice,
 			setValue: value => _configuration.TilePrice = value,
 			min: 1
@@ -174,8 +174,8 @@ public sealed class ModEntry : Mod
 
 		configurationMenu.AddNumberOption(
 			mod: ModManifest,
-			name: () => "Tile price increase",
-			tooltip: () => "The tile price increase per tile, only used on the easiest difficulty",
+			name: () => Helper.Translation.Get("tile-price-increase"),
+			tooltip: () => Helper.Translation.Get("tile-price-increase-tooltip"),
 			getValue: () => _configuration.TilePriceRaise,
 			setValue: value => _configuration.TilePriceRaise = value,
 			min: 0f
@@ -499,11 +499,7 @@ public sealed class ModEntry : Mod
 		{
 			if (locationDelay <= 0)
 			{
-				var locationName = GetLocationName(Game1.currentLocation);
-
-				Monitor.Log($"Grouping Tiles At: {locationName}", LogLevel.Debug);
 				GetLocationTiles(Game1.currentLocation);
-
 				location_changed = false;
 			}
 
@@ -532,6 +528,7 @@ public sealed class ModEntry : Mod
 		{
 			tileData.AllKaiTilesList = tileDict[locationName];
 		}
+
 		Helper.Data.WriteJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{locationName}.json", tileData);
 	}
 
@@ -559,7 +556,7 @@ public sealed class ModEntry : Mod
 
 		if (ThisLocationTiles.Count == 0)
 		{
-			Monitor.Log($"All tiles for {locationName} have been bought?", LogLevel.Debug);
+			Monitor.Log($"All tiles for {locationName} have been bought", LogLevel.Debug);
 		}
 
 		if (location.Name != TEMPORARY_LOCATION_NAME)
@@ -767,7 +764,7 @@ public sealed class ModEntry : Mod
 				case BUY_LOCATION_YES_KEY:
 					if (totalPrice > farmer.Money)
 					{
-						Game1.drawObjectDialogue($"You don't have enough money to buy all the tiles");
+						Game1.drawObjectDialogue(Helper.Translation.Get("not-enough-money"));
 						return;
 					}
 
@@ -780,11 +777,11 @@ public sealed class ModEntry : Mod
 		};
 
 		Game1.currentLocation.createQuestionDialogue(
-			$"Are you sure want to buy all the tiles in this location for {totalPrice}?\nThe new tile price will be {tilePrice}",
+			Helper.Translation.Get("buy-all-tiles-question", new { totalprice = totalPrice, tileprice = tilePrice }),
 			new Response[]
 			{
-				new(BUY_LOCATION_YES_KEY, "Yes"),
-				new(BUY_LOCATION_NO_KEY, "No"),
+				new(BUY_LOCATION_YES_KEY, Helper.Translation.Get("buy-all-tiles-yes")),
+				new(BUY_LOCATION_NO_KEY, Helper.Translation.Get("buy-all-tiles-no")),
 			},
 			BUY_LOCATION_DIALOGUE_KEY);
 	}
