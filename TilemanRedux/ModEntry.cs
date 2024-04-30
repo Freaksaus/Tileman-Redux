@@ -429,6 +429,7 @@ public sealed class ModEntry : Mod
 		}
 
 		Game1.player.Money -= floor_price;
+		_data.TotalMoneySpent += floor_price;
 
 		_data.PurchaseCount++;
 		_currentTilePrice = GetNewTilePrice(_data.DifficultyMode, _currentTilePrice, _data.TilePrice, _data.TilePriceRaise, _data.PurchaseCount);
@@ -677,6 +678,8 @@ public sealed class ModEntry : Mod
 		_data = Helper.Data.ReadSaveData<ModData>(SAVE_CONFIG_KEY)
 			?? new();
 
+		SetMoneySpentForOldSaves();
+
 		_currentTilePrice = GetNewTilePrice(_data.DifficultyMode, _currentTilePrice, _data.TilePrice, _data.TilePriceRaise, _data.PurchaseCount);
 
 		Monitor.Log("Mod Data Loaded", LogLevel.Debug);
@@ -703,6 +706,27 @@ public sealed class ModEntry : Mod
 			System.IO.File.Delete(saveConfigPath);
 			Monitor.Log("Converted old config file to save data", LogLevel.Debug);
 		}
+	}
+
+	/// <summary>
+	/// Money spent wasn't added until 1.0.5.
+	/// In case the player doesn't have this data yet try and calculate it based on the current difficulty and tiles bought.
+	/// </summary>
+	private void SetMoneySpentForOldSaves()
+	{
+		if (_data.TotalMoneySpent > 0)
+		{
+			return;
+		}
+
+		var tilePrice = _data.TilePrice;
+		for (int i = 0; i < _data.PurchaseCount; i++)
+		{
+			_data.TotalMoneySpent += tilePrice;
+			tilePrice = GetNewTilePrice(_data.DifficultyMode, tilePrice, _data.TilePrice, _data.TilePriceRaise, i);
+		}
+
+		Monitor.Log($"Set total spent to {_data.TotalMoneySpent}", LogLevel.Debug);
 	}
 
 	private static void PlayPurchaseSound()

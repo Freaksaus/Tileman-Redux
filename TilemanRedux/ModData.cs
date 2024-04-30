@@ -11,4 +11,5 @@ internal sealed class ModData
 	public int DifficultyMode { get; set; } = 1;
 	public int PurchaseCount { get; set; } = 0;
 	public int OverlayMode { get; set; } = 0;
+	public float TotalMoneySpent { get; set; } = 0;
 }
