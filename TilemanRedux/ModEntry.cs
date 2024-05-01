@@ -6,6 +6,7 @@ using StardewValley;
 using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
+using TilemanRedux.Services;
 
 namespace TilemanRedux;
 
@@ -37,6 +38,13 @@ public sealed class ModEntry : Mod
 
 	private ModConfig _configuration;
 	private ModData _data;
+
+	private readonly ITilePricingService _tilePricingService;
+
+	public ModEntry()
+	{
+		_tilePricingService = new TilePricingService();
+	}
 
 	public override void Entry(IModHelper helper)
 	{
@@ -359,38 +367,6 @@ public sealed class ModEntry : Mod
 		return true;
 	}
 
-	private static float GetNewTilePrice(
-		int difficultyMode,
-		float currentTilePrice,
-		float startingTilePrice,
-		float tilePriceRaise,
-		int tilesBought)
-	{
-		switch (difficultyMode)
-		{
-			case 0:
-				if (tilesBought > 0)
-				{
-					currentTilePrice += tilePriceRaise;
-				}
-				return currentTilePrice;
-
-			case 1:
-				if (tilesBought > 100000) return startingTilePrice * 64;
-				if (tilesBought > 10000) return startingTilePrice * 32;
-				if (tilesBought > 1000) return startingTilePrice * 16;
-				if (tilesBought > 100) return startingTilePrice * 8;
-				if (tilesBought > 10) return startingTilePrice * 4;
-				if (tilesBought > 1) return startingTilePrice * 2;
-
-				return currentTilePrice;
-			case 2:
-				return tilesBought;
-			default:
-				return currentTilePrice;
-		}
-	}
-
 	private void PurchaseTilePreCheck()
 	{
 		for (int i = 0; i < ThisLocationTiles.Count; i++)
@@ -432,8 +408,12 @@ public sealed class ModEntry : Mod
 		_data.TotalMoneySpent += floor_price;
 
 		_data.PurchaseCount++;
-		_currentTilePrice = GetNewTilePrice(_data.DifficultyMode, _currentTilePrice, _data.TilePrice, _data.TilePriceRaise, _data.PurchaseCount);
-
+		_currentTilePrice = _tilePricingService.CalculateTilePrice(
+			_data.DifficultyMode,
+			_currentTilePrice,
+			_data.TilePrice,
+			_data.TilePriceRaise,
+			_data.PurchaseCount);
 
 		if (playSound)
 		{
@@ -677,7 +657,12 @@ public sealed class ModEntry : Mod
 
 		SetMoneySpentForOldSaves();
 
-		_currentTilePrice = GetNewTilePrice(_data.DifficultyMode, _currentTilePrice, _data.TilePrice, _data.TilePriceRaise, _data.PurchaseCount);
+		_currentTilePrice = _tilePricingService.CalculateTilePrice(
+			_data.DifficultyMode,
+			_currentTilePrice,
+			_data.TilePrice,
+			_data.TilePriceRaise,
+			_data.PurchaseCount);
 
 		Monitor.Log("Mod Data Loaded", LogLevel.Debug);
 	}
@@ -720,7 +705,12 @@ public sealed class ModEntry : Mod
 		for (int i = 0; i < _data.PurchaseCount; i++)
 		{
 			_data.TotalMoneySpent += tilePrice;
-			tilePrice = GetNewTilePrice(_data.DifficultyMode, tilePrice, _data.TilePrice, _data.TilePriceRaise, i);
+			tilePrice = _tilePricingService.CalculateTilePrice(
+				_data.DifficultyMode,
+				tilePrice,
+				_data.TilePrice,
+				_data.TilePriceRaise,
+				i);
 		}
 
 		Monitor.Log($"Set total spent to {_data.TotalMoneySpent}", LogLevel.Debug);
@@ -794,7 +784,12 @@ public sealed class ModEntry : Mod
 		var purchaseCount = _data.PurchaseCount;
 		for (int i = 0; i < tileCount; i++)
 		{
-			tilePrice = GetNewTilePrice(_data.DifficultyMode, _currentTilePrice, _data.TilePrice, _data.TilePriceRaise, purchaseCount);
+			tilePrice = _tilePricingService.CalculateTilePrice(
+				_data.DifficultyMode,
+				_currentTilePrice,
+				_data.TilePrice,
+				_data.TilePriceRaise,
+				purchaseCount);
 			totalPrice += tilePrice;
 			purchaseCount++;
 		}
