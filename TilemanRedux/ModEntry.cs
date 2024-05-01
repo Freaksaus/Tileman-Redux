@@ -28,7 +28,7 @@ public sealed class ModEntry : Mod
 
 	private int collisionTick = 0;
 
-	List<KaiTile> ThisLocationTiles = new();
+	List<KaiTile> _currentLocationTiles = new();
 	readonly Dictionary<string, List<KaiTile>> tileDict = new();
 
 	Texture2D tileTexture = new(Game1.game1.GraphicsDevice, Game1.tileSize, Game1.tileSize);
@@ -281,9 +281,9 @@ public sealed class ModEntry : Mod
 		GroupIfLocationChange();
 
 		var locationName = GetLocationName(Game1.currentLocation);
-		for (int i = 0; i < ThisLocationTiles.Count; i++)
+		for (int i = 0; i < _currentLocationTiles.Count; i++)
 		{
-			KaiTile t = ThisLocationTiles[i];
+			KaiTile t = _currentLocationTiles[i];
 			if (t.Location == locationName)
 			{
 				if (_data.ToggleOverlay)
@@ -369,9 +369,9 @@ public sealed class ModEntry : Mod
 
 	private void PurchaseTilePreCheck()
 	{
-		for (int i = 0; i < ThisLocationTiles.Count; i++)
+		for (int i = 0; i < _currentLocationTiles.Count; i++)
 		{
-			KaiTile t = ThisLocationTiles[i];
+			KaiTile t = _currentLocationTiles[i];
 
 			if (_data.OverlayMode == OverlayMode.BUY_WITH_CURSOR)
 			{
@@ -432,7 +432,7 @@ public sealed class ModEntry : Mod
 		gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Passable");
 		gameLocation.removeTileProperty(thisTile.X, thisTile.Y, "Back", "Placeable");
 
-		ThisLocationTiles.Remove(thisTile);
+		_currentLocationTiles.Remove(thisTile);
 	}
 
 	private static List<KaiTile> GetTilesForLocation(GameLocation mapLocation)
@@ -502,7 +502,7 @@ public sealed class ModEntry : Mod
 
 		if (gameLocation.Name == TEMPORARY_LOCATION_NAME)
 		{
-			tileData.AllKaiTilesList = ThisLocationTiles;
+			tileData.AllKaiTilesList = _currentLocationTiles;
 		}
 		else
 		{
@@ -532,18 +532,18 @@ public sealed class ModEntry : Mod
 			tileDict.Add(locationName, tiles);
 		}
 
-		ThisLocationTiles = tileDict[locationName];
+		_currentLocationTiles = tileDict[locationName];
 
-		if (ThisLocationTiles.Count == 0)
+		if (_currentLocationTiles.Count == 0)
 		{
 			Monitor.Log($"All tiles for {locationName} have been bought", LogLevel.Debug);
 		}
 
 		if (location.Name != TEMPORARY_LOCATION_NAME)
 		{
-			for (int i = 0; i < ThisLocationTiles.Count; i++)
+			for (int i = 0; i < _currentLocationTiles.Count; i++)
 			{
-				var t = ThisLocationTiles[i];
+				var t = _currentLocationTiles[i];
 
 				if (!_data.AllowPlayerPlacement)
 				{
@@ -562,7 +562,7 @@ public sealed class ModEntry : Mod
 	{
 		_data = new();
 		_currentTilePrice = 0;
-		ThisLocationTiles.Clear();
+		_currentLocationTiles.Clear();
 
 		tileDict.Clear();
 	}
@@ -799,9 +799,9 @@ public sealed class ModEntry : Mod
 
 	private void BuyoutCurrentLocation()
 	{
-		while (ThisLocationTiles.Count > 0)
+		while (_currentLocationTiles.Count > 0)
 		{
-			TryAndPurchaseTile(ThisLocationTiles[0], false);
+			TryAndPurchaseTile(_currentLocationTiles[0], false);
 		}
 
 		PlayPurchaseSound();
