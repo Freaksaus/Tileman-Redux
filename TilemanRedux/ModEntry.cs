@@ -50,19 +50,19 @@ public sealed class ModEntry : Mod
 	{
 		_configuration = helper.ReadConfig<ModConfig>();
 
-		helper.Events.Input.ButtonReleased += this.OnButtonReleased;
-		helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+		helper.Events.Input.ButtonReleased += OnButtonReleased;
+		helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-		helper.Events.Display.RenderedWorld += this.DrawUpdate;
+		helper.Events.Display.RenderedWorld += DrawUpdate;
 		helper.Events.Display.MenuChanged += MenuChanged;
 
 		helper.Events.GameLoop.GameLaunched += GameLaunched;
 		helper.Events.GameLoop.SaveCreated += SaveCreated;
 		helper.Events.GameLoop.Saving += Saving;
-		helper.Events.GameLoop.Saved += this.SaveModData;
-		helper.Events.GameLoop.SaveLoaded += this.LoadModData;
-		helper.Events.GameLoop.DayStarted += this.DayStartedUpdate;
-		helper.Events.GameLoop.ReturnedToTitle += this.TitleReturnUpdate;
+		helper.Events.GameLoop.Saved += SaveModData;
+		helper.Events.GameLoop.SaveLoaded += LoadModData;
+		helper.Events.GameLoop.DayStarted += DayStartedUpdate;
+		helper.Events.GameLoop.ReturnedToTitle += TitleReturnUpdate;
 
 		tileTexture = helper.ModContent.Load<Texture2D>("assets/tile.png");
 		tileTexture2 = helper.ModContent.Load<Texture2D>("assets/tile_2.png");
@@ -103,7 +103,7 @@ public sealed class ModEntry : Mod
 
 	private void GameLaunched(object sender, GameLaunchedEventArgs e)
 	{
-		var configurationMenu = this.Helper.ModRegistry.GetApi<Api.IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+		var configurationMenu = Helper.ModRegistry.GetApi<Api.IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
 		if (configurationMenu is null)
 		{
 			return;
@@ -210,7 +210,7 @@ public sealed class ModEntry : Mod
 		if (_configuration.ToggleOverlayKey.IsDown())
 		{
 			_data.ToggleOverlay = !_data.ToggleOverlay;
-			this.Monitor.Log($"Tileman Overlay set to:{_data.ToggleOverlay}", LogLevel.Debug);
+			Monitor.Log($"Tileman Overlay set to:{_data.ToggleOverlay}", LogLevel.Debug);
 
 			if (_data.ToggleOverlay)
 			{
