@@ -18,15 +18,14 @@ public sealed class ModEntry : Mod
 	private const string BUY_LOCATION_NO_KEY = "tilemanredux-buy-location-no";
 	private const string TEMPORARY_LOCATION_NAME = "Temp";
 
-	private bool tool_button_pushed = false;
-	private bool location_changed = false;
-	private bool isFishing = false;
+	private bool _toolButtonPressed = false;
+	private bool _locationChanged = false;
+	private bool _fishing = false;
 
 	private float _currentTilePrice = 0;
 
-	private int locationDelay = 0;
-
-	private int collisionTick = 0;
+	private int _locationChangedTickDelay = 0;
+	private int _collisioTickDelay = 0;
 
 	List<KaiTile> _currentLocationTiles = new();
 	readonly Dictionary<string, List<KaiTile>> tileDict = new();
@@ -74,11 +73,11 @@ public sealed class ModEntry : Mod
 	{
 		if (e.NewMenu is BobberBar)
 		{
-			isFishing = true;
+			_fishing = true;
 		}
 		else if (e.OldMenu is BobberBar)
 		{
-			isFishing = false;
+			_fishing = false;
 		}
 	}
 
@@ -250,13 +249,13 @@ public sealed class ModEntry : Mod
 
 		if (e.Button.IsUseToolButton())
 		{
-			tool_button_pushed = true;
+			_toolButtonPressed = true;
 		}
 	}
 
 	private void OnButtonReleased(object sender, ButtonReleasedEventArgs e)
 	{
-		if (e.Button.IsUseToolButton()) tool_button_pushed = false;
+		if (e.Button.IsUseToolButton()) _toolButtonPressed = false;
 	}
 
 	private void DayStartedUpdate(object sender, DayStartedEventArgs e)
@@ -339,7 +338,7 @@ public sealed class ModEntry : Mod
 			}
 		}
 
-		if (tool_button_pushed) PurchaseTilePreCheck();
+		if (_toolButtonPressed) PurchaseTilePreCheck();
 	}
 
 	private bool ShoulDrawTiles()
@@ -359,7 +358,7 @@ public sealed class ModEntry : Mod
 			return false;
 		}
 
-		if (isFishing)
+		if (_fishing)
 		{
 			return false;
 		}
@@ -469,21 +468,21 @@ public sealed class ModEntry : Mod
 	{
 		if (Game1.locationRequest != null)
 		{
-			if (Game1.locationRequest.Location != Game1.currentLocation && !location_changed)
+			if (Game1.locationRequest.Location != Game1.currentLocation && !_locationChanged)
 			{
-				locationDelay = 35;
-				location_changed = true;
+				_locationChangedTickDelay = 35;
+				_locationChanged = true;
 			}
 		}
-		else if (location_changed)
+		else if (_locationChanged)
 		{
-			if (locationDelay <= 0)
+			if (_locationChangedTickDelay <= 0)
 			{
 				GetLocationTiles(Game1.currentLocation);
-				location_changed = false;
+				_locationChanged = false;
 			}
 
-			locationDelay--;
+			_locationChangedTickDelay--;
 		}
 	}
 
@@ -576,10 +575,10 @@ public sealed class ModEntry : Mod
 
 			if (playerBox.Intersects(tileBox))
 			{
-				if (_data.OverlayMode != OverlayMode.NO_BUYING && collisionTick > 120)
+				if (_data.OverlayMode != OverlayMode.NO_BUYING && _collisioTickDelay > 120)
 				{
 					Game1.player.Money += (int)_currentTilePrice;
-					collisionTick = 0;
+					_collisioTickDelay = 0;
 					TryAndPurchaseTile(tile, true);
 				}
 
@@ -621,20 +620,20 @@ public sealed class ModEntry : Mod
 						Game1.player.Position = newPos;
 					}
 				}
-				collisionTick++;
+				_collisioTickDelay++;
 			}
 
-			if (playerBox.Center == tileBox.Center || playerBox.Intersects(tileBox) && locationDelay > 0)
+			if (playerBox.Center == tileBox.Center || playerBox.Intersects(tileBox) && _locationChangedTickDelay > 0)
 			{
-				if (_data.OverlayMode != OverlayMode.NO_BUYING && collisionTick > 120)
+				if (_data.OverlayMode != OverlayMode.NO_BUYING && _collisioTickDelay > 120)
 				{
 					Game1.player.Money += (int)_data.TilePrice;
-					collisionTick = 0;
+					_collisioTickDelay = 0;
 					TryAndPurchaseTile(tile, true);
 				}
 
 				Game1.player.Position = Game1.player.lastPosition;
-				collisionTick++;
+				_collisioTickDelay++;
 			}
 		}
 	}
