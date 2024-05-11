@@ -382,19 +382,13 @@ public sealed class ModEntry : Mod
 		{
 			KaiTile t = _currentLocationTiles[i];
 
-			if (_data.OverlayMode == OverlayMode.BUY_WITH_CURSOR)
+			if (_data.OverlayMode == OverlayMode.BUY_WITH_CURSOR && Game1.currentCursorTile == new Vector2(t.X, t.Y))
 			{
-				if (Game1.currentCursorTile == new Vector2(t.X, t.Y))
-				{
-					TryAndPurchaseTile(t, true);
-				}
+				TryAndPurchaseTile(t, true);
 			}
-			else if (_data.OverlayMode == OverlayMode.BUY_WITH_TOOL)
+			else if (_data.OverlayMode == OverlayMode.BUY_WITH_TOOL && Game1.player.nextPositionTile().X == t.X && Game1.player.nextPositionTile().Y == t.Y)
 			{
-				if (Game1.player.nextPositionTile().X == t.X && Game1.player.nextPositionTile().Y == t.Y)
-				{
-					TryAndPurchaseTile(t, true);
-				}
+				TryAndPurchaseTile(t, true);
 			}
 		}
 	}
