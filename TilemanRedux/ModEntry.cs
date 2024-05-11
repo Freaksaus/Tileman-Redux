@@ -272,7 +272,7 @@ public sealed class ModEntry : Mod
 
 	private void DrawUpdate(object sender, RenderedWorldEventArgs e)
 	{
-		if (!ShoulDrawTiles())
+		if (!ShouldDrawTiles())
 		{
 			return;
 		}
@@ -341,7 +341,7 @@ public sealed class ModEntry : Mod
 		if (_toolButtonPressed) PurchaseTilePreCheck();
 	}
 
-	private bool ShoulDrawTiles()
+	private bool ShouldDrawTiles()
 	{
 		if (!Context.IsWorldReady)
 		{
