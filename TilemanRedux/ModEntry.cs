@@ -297,38 +297,29 @@ public sealed class ModEntry : Mod
 			}
 
 			var texture = tileTexture;
-			var stringColor = Color.Gold;
 
-			if (_data.OverlayMode == OverlayMode.BUY_WITH_CURSOR)
+			if (ShouldDrawTilePurchaseInfo(tile))
 			{
-				if (Game1.currentCursorTile == new Vector2(tile.X, tile.Y))
+				try
 				{
-					texture = tileTexture2;
+					var drawVector = GetTilePurchaseVector(tile);
+					var stringColor = Color.Gold;
 
 					if (Game1.player.Money < (int)Math.Floor(_currentTilePrice))
 					{
-						stringColor = Color.Red;
 						texture = tileTexture3;
+						stringColor = Color.Red;
+					}
+					else
+					{
+						texture = tileTexture2;
 					}
 
-					e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(_currentTilePrice)}",
-						new Vector2(Game1.getMousePosition().X, Game1.getMousePosition().Y - Game1.tileSize), stringColor);
+					e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(_currentTilePrice)}", drawVector, stringColor);
 				}
-			}
-			else if (_data.OverlayMode == OverlayMode.BUY_WITH_TOOL)
-			{
-				if (Game1.player.nextPositionTile().X == tile.X && Game1.player.nextPositionTile().Y == tile.Y)
+				catch (Exceptions.InvalidOverlayModeException)
 				{
-					texture = tileTexture2;
-
-					if (Game1.player.Money < (int)Math.Floor(_currentTilePrice))
-					{
-						texture = tileTexture3;
-						stringColor = Color.Red;
-					}
-
-					e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(_currentTilePrice)}",
-						new Vector2((tile.X) * 64 - Game1.viewport.X, (tile.Y) * 64 - 64 - Game1.viewport.Y), stringColor);
+					Monitor.Log("Tried to find tile purchase vector for an invalid overlay mode", LogLevel.Warn);
 				}
 			}
 			else if (_data.OverlayMode == OverlayMode.NO_BUYING)
@@ -369,6 +360,21 @@ public sealed class ModEntry : Mod
 
 		return true;
 	}
+
+	private bool ShouldDrawTilePurchaseInfo(KaiTile tile) => _data.OverlayMode switch
+	{
+		OverlayMode.NO_BUYING => false,
+		OverlayMode.BUY_WITH_TOOL => Game1.player.nextPositionTile().X == tile.X && Game1.player.nextPositionTile().Y == tile.Y,
+		OverlayMode.BUY_WITH_CURSOR => Game1.currentCursorTile == new Vector2(tile.X, tile.Y),
+		_ => false,
+	};
+
+	private Vector2 GetTilePurchaseVector(KaiTile tile) => _data.OverlayMode switch
+	{
+		OverlayMode.BUY_WITH_CURSOR => new Vector2(Game1.getMousePosition().X, Game1.getMousePosition().Y - Game1.tileSize),
+		OverlayMode.BUY_WITH_TOOL => new Vector2((tile.X) * 64 - Game1.viewport.X, (tile.Y) * 64 - 64 - Game1.viewport.Y),
+		_ => throw new Exceptions.InvalidOverlayModeException(_data.OverlayMode),
+	};
 
 	private void PurchaseTilePreCheck()
 	{
