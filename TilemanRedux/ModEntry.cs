@@ -6,6 +6,7 @@ using StardewValley;
 using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TilemanRedux.Services;
 
 namespace TilemanRedux;
@@ -280,61 +281,60 @@ public sealed class ModEntry : Mod
 		GroupIfLocationChange();
 
 		var locationName = GetLocationName(Game1.currentLocation);
-		for (int i = 0; i < _currentLocationTiles.Count; i++)
+		var locationTiles = _currentLocationTiles
+			.Where(x => x.Location == locationName)
+			.ToList();
+		foreach (var tile in locationTiles)
 		{
-			KaiTile t = _currentLocationTiles[i];
-			if (t.Location == locationName)
+			if (_data.ToggleOverlay)
 			{
-				if (_data.ToggleOverlay)
+				var texture = tileTexture;
+				var stringColor = Color.Gold;
+
+				if (_data.OverlayMode == OverlayMode.BUY_WITH_CURSOR)
 				{
-					var texture = tileTexture;
-					var stringColor = Color.Gold;
-
-					if (_data.OverlayMode == OverlayMode.BUY_WITH_CURSOR)
+					if (Game1.currentCursorTile == new Vector2(tile.X, tile.Y))
 					{
-						if (Game1.currentCursorTile == new Vector2(t.X, t.Y))
+						texture = tileTexture2;
+
+						if (Game1.player.Money < (int)Math.Floor(_currentTilePrice))
 						{
-							texture = tileTexture2;
-
-							if (Game1.player.Money < (int)Math.Floor(_currentTilePrice))
-							{
-								stringColor = Color.Red;
-								texture = tileTexture3;
-							}
-
-							e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(_currentTilePrice)}",
-								new Vector2(Game1.getMousePosition().X, Game1.getMousePosition().Y - Game1.tileSize), stringColor);
+							stringColor = Color.Red;
+							texture = tileTexture3;
 						}
+
+						e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(_currentTilePrice)}",
+							new Vector2(Game1.getMousePosition().X, Game1.getMousePosition().Y - Game1.tileSize), stringColor);
 					}
-					else if (_data.OverlayMode == OverlayMode.BUY_WITH_TOOL)
+				}
+				else if (_data.OverlayMode == OverlayMode.BUY_WITH_TOOL)
+				{
+					if (Game1.player.nextPositionTile().X == tile.X && Game1.player.nextPositionTile().Y == tile.Y)
 					{
-						if (Game1.player.nextPositionTile().X == t.X && Game1.player.nextPositionTile().Y == t.Y)
+						texture = tileTexture2;
+
+						if (Game1.player.Money < (int)Math.Floor(_currentTilePrice))
 						{
-							texture = tileTexture2;
-
-							if (Game1.player.Money < (int)Math.Floor(_currentTilePrice))
-							{
-								texture = tileTexture3;
-								stringColor = Color.Red;
-							}
-
-							e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(_currentTilePrice)}",
-								new Vector2((t.X) * 64 - Game1.viewport.X, (t.Y) * 64 - 64 - Game1.viewport.Y), stringColor);
+							texture = tileTexture3;
+							stringColor = Color.Red;
 						}
-					}
-					else if (_data.OverlayMode == OverlayMode.NO_BUYING)
-					{
-						texture = noBuyingTileTexture;
-					}
 
-					t.DrawTile(texture, e.SpriteBatch);
+						e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(_currentTilePrice)}",
+							new Vector2((tile.X) * 64 - Game1.viewport.X, (tile.Y) * 64 - 64 - Game1.viewport.Y), stringColor);
+					}
+				}
+				else if (_data.OverlayMode == OverlayMode.NO_BUYING)
+				{
+					texture = noBuyingTileTexture;
 				}
 
-				//Prevent player from being pushed out of bounds
-				if (_data.DoCollision)
-				{
-					PlayerCollisionCheck(t);
-				}
+				tile.DrawTile(texture, e.SpriteBatch);
+			}
+
+			//Prevent player from being pushed out of bounds
+			if (_data.DoCollision)
+			{
+				PlayerCollisionCheck(tile);
 			}
 		}
 
