@@ -492,12 +492,7 @@ public sealed class ModEntry : Mod
 
 	private void SaveLocationTiles(GameLocation gameLocation)
 	{
-		var locationName = gameLocation.Name;
-
-		if (locationName == TEMPORARY_LOCATION_NAME)
-		{
-			locationName += Game1.whereIsTodaysFest;
-		}
+		var locationName = GetLocationName(gameLocation);
 
 		Monitor.Log($"Saving in {locationName}", LogLevel.Debug);
 
