@@ -812,6 +812,6 @@ public sealed class ModEntry : Mod
 			return Game1.whereIsTodaysFest;
 		}
 
-		return location.Name;
+		return location.NameOrUniqueName;
 	}
 }
