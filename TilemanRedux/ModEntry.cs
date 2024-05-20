@@ -263,7 +263,7 @@ public sealed class ModEntry : Mod
 	{
 		Monitor.Log("Day started", LogLevel.Debug);
 
-		GetLocationTiles(Game1.currentLocation);
+		_currentLocationTiles = GetLocationTiles(Game1.currentLocation);
 	}
 
 	private void TitleReturnUpdate(object sender, ReturnedToTitleEventArgs e)
@@ -482,7 +482,7 @@ public sealed class ModEntry : Mod
 		{
 			if (_locationChangedTickDelay <= 0)
 			{
-				GetLocationTiles(Game1.currentLocation);
+				_currentLocationTiles = GetLocationTiles(Game1.currentLocation);
 				_locationChanged = false;
 			}
 
@@ -510,10 +510,10 @@ public sealed class ModEntry : Mod
 		Helper.Data.WriteJsonFile<MapData>($"jsons/{Constants.SaveFolderName}/{locationName}.json", tileData);
 	}
 
-	private void GetLocationTiles(GameLocation location)
+	private List<KaiTile> GetLocationTiles(GameLocation location)
 	{
 		var locationName = GetLocationName(location);
-		Monitor.Log($"Get location tiles: {locationName}", LogLevel.Debug);
+		Monitor.Log($"Get location tiles for: {locationName}", LogLevel.Debug);
 
 		if (!tileDict.ContainsKey(locationName))
 		{
@@ -530,18 +530,16 @@ public sealed class ModEntry : Mod
 			tileDict.Add(locationName, tiles);
 		}
 
-		_currentLocationTiles = tileDict[locationName];
-
-		if (_currentLocationTiles.Count == 0)
+		if (tileDict[locationName].Count == 0)
 		{
 			Monitor.Log($"All tiles for {locationName} have been bought", LogLevel.Debug);
 		}
 
-		if (location.Name != TEMPORARY_LOCATION_NAME)
+		if (location.Name != TEMPORARY_LOCATION_NAME && location.NameOrUniqueName == Game1.currentLocation.NameOrUniqueName)
 		{
-			for (int i = 0; i < _currentLocationTiles.Count; i++)
+			for (int i = 0; i < tileDict[locationName].Count; i++)
 			{
-				var t = _currentLocationTiles[i];
+				var t = tileDict[locationName][i];
 
 				if (!_data.AllowPlayerPlacement)
 				{
@@ -554,6 +552,8 @@ public sealed class ModEntry : Mod
 				}
 			}
 		}
+
+		return tileDict[locationName];
 	}
 
 	private void ResetValues()
