@@ -133,7 +133,7 @@ public sealed class ModEntry : Mod
 
 		configurationMenu.AddKeybindList(
 			mod: ModManifest,
-			name: () => Helper.Translation.Get("toggle-overlay-mode"),
+			name: () => Helper.Translation.Get("change-difficulty-mode"),
 			getValue: () => _configuration.ChangeDifficultyKey,
 			setValue: value => _configuration.ChangeDifficultyKey = value
 		);

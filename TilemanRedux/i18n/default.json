@@ -1,7 +1,7 @@
 {
     "toggle-overlay": "Toggle overlay",
     "toggle-overlay-mode": "Toggle overlay mode",
-    "change-difficulty": "Change difficulty",
+    "change-difficulty-mode": "Change difficulty mode",
     "buy-all-tiles": "Buy all tiles in current location",
     "default-settings": "Default settings",
     "default-settings-tooltip": "The default settings used for any new save file.\nThis will not impact your current save!",
