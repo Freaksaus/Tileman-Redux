@@ -41,4 +41,9 @@ internal sealed class ModConfig
 	/// The default difficulty mode to use for new saves
 	/// </summary>
 	public int DifficultyMode { get; set; } = 1;
+
+	/// <summary>
+	/// Allow the buying of a tile when the player keeps colliding without money to avoid getting stuck
+	/// </summary>
+	public bool BuyTileWhenCollidingWithoutMoney { get; set; }
 }

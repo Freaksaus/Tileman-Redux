@@ -188,6 +188,19 @@ public sealed class ModEntry : Mod
 			setValue: value => _configuration.TilePriceRaise = value,
 			min: 0f
 		);
+
+		configurationMenu.AddParagraph(
+			mod: ModManifest,
+			text: () => Helper.Translation.Get("buy-colliding-explanation")
+		);
+
+		configurationMenu.AddBoolOption(
+			mod: ModManifest,
+			name: () => Helper.Translation.Get("buy-colliding"),
+			tooltip: () => Helper.Translation.Get("buy-colliding-tooltip"),
+			getValue: () => _configuration.BuyTileWhenCollidingWithoutMoney,
+			setValue: value => _configuration.BuyTileWhenCollidingWithoutMoney = value
+		);
 	}
 
 	private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
@@ -574,9 +587,15 @@ public sealed class ModEntry : Mod
 
 			if (playerBox.Intersects(tileBox))
 			{
-				if (_data.OverlayMode != OverlayMode.NO_BUYING && _collisionTickDelay > 120)
+				if (_configuration.BuyTileWhenCollidingWithoutMoney &&
+					_data.OverlayMode != OverlayMode.NO_BUYING &&
+					_collisionTickDelay > 120)
 				{
-					Game1.player.Money += GetCurrentTilePrice();
+					if (Game1.player.Money < GetCurrentTilePrice())
+					{
+						Game1.player.Money += (int)_data.TilePrice;
+					}
+
 					_collisionTickDelay = 0;
 					TryAndPurchaseTile(tile, true);
 				}
@@ -624,9 +643,15 @@ public sealed class ModEntry : Mod
 
 			if (playerBox.Center == tileBox.Center || playerBox.Intersects(tileBox) && _locationChangedTickDelay > 0)
 			{
-				if (_data.OverlayMode != OverlayMode.NO_BUYING && _collisionTickDelay > 120)
+				if (_configuration.BuyTileWhenCollidingWithoutMoney &&
+					_data.OverlayMode != OverlayMode.NO_BUYING &&
+					_collisionTickDelay > 120)
 				{
-					Game1.player.Money += (int)_data.TilePrice;
+					if (Game1.player.Money < GetCurrentTilePrice())
+					{
+						Game1.player.Money += (int)_data.TilePrice;
+					}
+
 					_collisionTickDelay = 0;
 					TryAndPurchaseTile(tile, true);
 				}
