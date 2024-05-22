@@ -305,7 +305,7 @@ public sealed class ModEntry : Mod
 					var drawVector = GetTilePurchaseVector(tile);
 					var stringColor = Color.Gold;
 
-					if (Game1.player.Money < (int)Math.Floor(_currentTilePrice))
+					if (Game1.player.Money < GetCurrentTilePrice())
 					{
 						texture = tileTexture3;
 						stringColor = Color.Red;
@@ -315,7 +315,7 @@ public sealed class ModEntry : Mod
 						texture = tileTexture2;
 					}
 
-					e.SpriteBatch.DrawString(Game1.dialogueFont, $"${(int)Math.Floor(_currentTilePrice)}", drawVector, stringColor);
+					e.SpriteBatch.DrawString(Game1.dialogueFont, $"${GetCurrentTilePrice()}", drawVector, stringColor);
 				}
 				catch (Exceptions.InvalidOverlayModeException)
 				{
@@ -395,7 +395,7 @@ public sealed class ModEntry : Mod
 
 	private void TryAndPurchaseTile(KaiTile thisTile, bool playSound)
 	{
-		int floor_price = (int)Math.Floor(_currentTilePrice);
+		int floor_price = GetCurrentTilePrice();
 
 		if (Game1.player.Money < floor_price)
 		{
@@ -576,7 +576,7 @@ public sealed class ModEntry : Mod
 			{
 				if (_data.OverlayMode != OverlayMode.NO_BUYING && _collisionTickDelay > 120)
 				{
-					Game1.player.Money += (int)_currentTilePrice;
+					Game1.player.Money += GetCurrentTilePrice();
 					_collisionTickDelay = 0;
 					TryAndPurchaseTile(tile, true);
 				}
@@ -813,5 +813,10 @@ public sealed class ModEntry : Mod
 		}
 
 		return location.NameOrUniqueName;
+	}
+
+	private int GetCurrentTilePrice()
+	{
+		return (int)Math.Floor(_currentTilePrice);
 	}
 }
