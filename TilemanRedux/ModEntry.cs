@@ -26,7 +26,7 @@ public sealed class ModEntry : Mod
 	private float _currentTilePrice = 0;
 
 	private int _locationChangedTickDelay = 0;
-	private int _collisioTickDelay = 0;
+	private int _collisionTickDelay = 0;
 
 	List<KaiTile> _currentLocationTiles = new();
 	readonly Dictionary<string, List<KaiTile>> tileDict = new();
@@ -574,10 +574,10 @@ public sealed class ModEntry : Mod
 
 			if (playerBox.Intersects(tileBox))
 			{
-				if (_data.OverlayMode != OverlayMode.NO_BUYING && _collisioTickDelay > 120)
+				if (_data.OverlayMode != OverlayMode.NO_BUYING && _collisionTickDelay > 120)
 				{
 					Game1.player.Money += (int)_currentTilePrice;
-					_collisioTickDelay = 0;
+					_collisionTickDelay = 0;
 					TryAndPurchaseTile(tile, true);
 				}
 
@@ -619,20 +619,20 @@ public sealed class ModEntry : Mod
 						Game1.player.Position = newPos;
 					}
 				}
-				_collisioTickDelay++;
+				_collisionTickDelay++;
 			}
 
 			if (playerBox.Center == tileBox.Center || playerBox.Intersects(tileBox) && _locationChangedTickDelay > 0)
 			{
-				if (_data.OverlayMode != OverlayMode.NO_BUYING && _collisioTickDelay > 120)
+				if (_data.OverlayMode != OverlayMode.NO_BUYING && _collisionTickDelay > 120)
 				{
 					Game1.player.Money += (int)_data.TilePrice;
-					_collisioTickDelay = 0;
+					_collisionTickDelay = 0;
 					TryAndPurchaseTile(tile, true);
 				}
 
 				Game1.player.Position = Game1.player.lastPosition;
-				_collisioTickDelay++;
+				_collisionTickDelay++;
 			}
 		}
 	}
